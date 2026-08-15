@@ -1,0 +1,26 @@
+# BetRHood Protocol
+
+Onchain storage and messaging on Robinhood Chain. Upload a file, get a permanent link back.
+Post a message, get it back by topic. No IPFS, no pinning, no accounts — your wallet is the
+account, the chain is the only persistence layer there is.
+
+Live on Robinhood Chain mainnet (chain ID `4663`):
+
+| Contract | Address |
+|---|---|
+| Storage | `0xf89fb2197682f0679ABeDE1D61bbc978f2667210` |
+| Messaging | `0x5056a342b87CB4e6fCa5A096A3A3b903032EC661` |
+| Profile | `0x8dCFBE7BBBe929328129420dA140e0DCC2446C18` |
+
+## Layout
+
+- **`contracts/`** — Foundry project: `Storage.sol`, `Messaging.sol`, `Profile.sol`. See its
+  own README for design notes and deploy instructions.
+- **`sdk/`** — `@betrhood/sdk`, the TypeScript client. `upload()`/`resolve()` for files,
+  `postMessage()`/`getMessagesByTopic()` for messages, `setName()`/`setPicture()` for
+  profiles. Handles gzip compression and chunking internally.
+- **`gateway/`** *(not yet built)* — Cloudflare Worker that turns a link like
+  `betrhood.com/<address>/<key>` into an HTTP response, so anyone can open a link in a
+  plain browser with no wallet required.
+- **`frontend/`** *(not yet built)* — the web app: upload, homepage (trending/popular/recent
+  threads), profile, link viewer.

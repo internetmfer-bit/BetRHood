@@ -1,0 +1,17 @@
+# Compiler files
+cache/
+out/
+
+# Dependencies — pinned by foundry.lock, restored with `forge install`, not vendored here
+lib/
+
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+
+# Docs
+docs/
+
+# Dotenv file
+.env
