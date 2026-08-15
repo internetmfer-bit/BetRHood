@@ -2,5 +2,8 @@
 node_modules/
 dist/
 
+# Wrangler local dev state
+.wrangler/
+
 # OS
 .DS_Store

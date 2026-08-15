@@ -19,8 +19,8 @@ Live on Robinhood Chain mainnet (chain ID `4663`):
 - **`sdk/`** — `@betrhood/sdk`, the TypeScript client. `upload()`/`resolve()` for files,
   `postMessage()`/`getMessagesByTopic()` for messages, `setName()`/`setPicture()` for
   profiles. Handles gzip compression and chunking internally.
-- **`gateway/`** *(not yet built)* — Cloudflare Worker that turns a link like
-  `betrhood.com/<address>/<key>` into an HTTP response, so anyone can open a link in a
-  plain browser with no wallet required.
+- **`gateway/`** — Cloudflare Worker that turns a link like `betrhood.com/<address>/<key>`
+  into an HTTP response, so anyone can open a link in a plain browser with no wallet
+  required. See its own README for local dev and deploy instructions.
 - **`frontend/`** *(not yet built)* — the web app: upload, homepage (trending/popular/recent
   threads), profile, link viewer.

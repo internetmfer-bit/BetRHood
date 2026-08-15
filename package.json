@@ -1,0 +1,8 @@
+{
+  "name": "betrhood-protocol",
+  "private": true,
+  "workspaces": [
+    "sdk",
+    "gateway"
+  ]
+}
