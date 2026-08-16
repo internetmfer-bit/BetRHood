@@ -1,5 +1,16 @@
-import { CHUNK_SIZE, getBio, getProfile, getProfilePicture, setBio as setBioOnChain, setName as setNameOnChain, setPicture } from "@betrhood/sdk";
+import {
+  CHUNK_SIZE,
+  getBio,
+  getFollowerCount,
+  getFollowingCount,
+  getProfile,
+  getProfilePicture,
+  setBio as setBioOnChain,
+  setName as setNameOnChain,
+  setPicture,
+} from "@betrhood/sdk";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 export function Profile() {
@@ -16,6 +27,8 @@ export function Profile() {
   const [error, setError] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [followerCount, setFollowerCount] = useState<bigint | null>(null);
+  const [followingCount, setFollowingCount] = useState<bigint | null>(null);
   const loadedPictureUrl = useRef<string | null>(null);
   // What's actually on chain right now, so Save can skip fields that haven't changed instead
   // of paying gas to write the exact same value back.
@@ -27,15 +40,27 @@ export function Profile() {
     let cancelled = false;
 
     (async () => {
-      const [profile, bioText] = await Promise.all([
-        getProfile(publicClient, address),
-        getBio(publicClient, address),
-      ]);
+      const [profile, bioText] = await Promise.all([getProfile(publicClient, address), getBio(publicClient, address)]);
       if (cancelled) return;
       setName(profile.name);
       setBio(bioText);
       savedName.current = profile.name;
       savedBio.current = bioText;
+
+      // Separate from the main load — a Follow.sol hiccup shouldn't block name/bio/picture
+      // from loading, it should just mean the counts line doesn't show.
+      try {
+        const [followers, following] = await Promise.all([
+          getFollowerCount(publicClient, address),
+          getFollowingCount(publicClient, address),
+        ]);
+        if (!cancelled) {
+          setFollowerCount(followers);
+          setFollowingCount(following);
+        }
+      } catch {
+        // leave both null
+      }
 
       if (profile.hasPicture) {
         const bytes = await getProfilePicture(publicClient, address);
@@ -122,6 +147,13 @@ export function Profile() {
   return (
     <div className="panel">
       <h1>Profile</h1>
+      {loaded && followerCount !== null && followingCount !== null && (
+        <p className="follow-counts">
+          <Link to={`/u/${address}`}>
+            <b>{followerCount.toString()}</b> followers · <b>{followingCount.toString()}</b> following
+          </Link>
+        </p>
+      )}
 
       <label className="avatar-picker">
         {pendingPreviewUrl ? (

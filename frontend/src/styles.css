@@ -438,6 +438,16 @@ a { color: var(--matrix); }
 
 .profile-bio { color: var(--text-soft); font-size: 0.95rem; max-width: 46ch; }
 
+.follow-counts { font-family: var(--font-mono); font-size: 0.98rem; color: var(--text-soft); }
+.follow-counts a { color: var(--text-soft); text-decoration: none; }
+.follow-counts a:hover { color: var(--matrix); }
+.follow-counts b { color: var(--matrix); font-weight: normal; }
+
+.follow { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; }
+.follow-btn { min-width: 92px; }
+.follow-btn-following { border-color: var(--matrix); color: var(--matrix); }
+.follow-btn-following:hover { border-color: var(--error); color: var(--error); }
+
 .tabs { display: flex; gap: 16px; }
 .tab { font-family: var(--font-mono); font-size: 1rem; border: none; background: none; color: var(--text-faint); cursor: pointer; padding: 4px 0; }
 .tab-active { color: var(--lime); border-bottom: 2px solid var(--lime); }

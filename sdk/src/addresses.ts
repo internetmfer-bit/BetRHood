@@ -7,4 +7,5 @@ export const addresses = {
   messaging: "0x5056a342b87CB4e6fCa5A096A3A3b903032EC661",
   profile: "0x8dCFBE7BBBe929328129420dA140e0DCC2446C18",
   upvote: "0x861F6738B14af796421109FA6De227ab11367FBa",
+  follow: "0xC1b85b733b6484a4d82c5C2d821085eE08038453",
 } as const;

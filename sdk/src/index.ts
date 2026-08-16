@@ -45,3 +45,16 @@ export {
   type CollectionStandard,
   type AllowedCollection,
 } from "./upvote.js";
+
+export {
+  follow,
+  unfollow,
+  isFollowing,
+  getFollowingCount,
+  getFollowerCount,
+  getFollowing,
+  getFollowers,
+  CannotFollowSelfError,
+  AlreadyFollowingError,
+  NotFollowingError,
+} from "./follow.js";

@@ -16,6 +16,7 @@ export interface TestAddresses {
   messaging: `0x${string}`;
   profile: `0x${string}`;
   upvote: `0x${string}`;
+  follow: `0x${string}`;
   mockerc721: `0x${string}`;
   mockerc1155: `0x${string}`;
 }
@@ -41,7 +42,8 @@ async function doStart(): Promise<TestAddresses> {
   // Each script reads PRIVATE_KEY via vm.envUint(), so it must be a real env var here — a
   // --private-key CLI flag alone wouldn't satisfy that call.
   const env = { ...process.env, PRIVATE_KEY: TEST_PRIVATE_KEY };
-  for (const script of ["Deploy.s.sol", "DeployUpvote.s.sol", "DeployTestFixtures.s.sol"]) {
+  const scripts = ["Deploy.s.sol", "DeployUpvote.s.sol", "DeployFollow.s.sol", "DeployTestFixtures.s.sol"];
+  for (const script of scripts) {
     execSync(`forge script script/${script} --rpc-url ${ANVIL_RPC} --broadcast`, {
       cwd: CONTRACTS_DIR,
       stdio: "pipe",
@@ -50,7 +52,7 @@ async function doStart(): Promise<TestAddresses> {
   }
 
   const addresses: Record<string, `0x${string}`> = {};
-  for (const script of ["Deploy.s.sol", "DeployUpvote.s.sol", "DeployTestFixtures.s.sol"]) {
+  for (const script of scripts) {
     const broadcastPath = path.join(CONTRACTS_DIR, `broadcast/${script}/31337/run-latest.json`);
     const broadcast = JSON.parse(readFileSync(broadcastPath, "utf-8"));
     for (const tx of broadcast.transactions) {

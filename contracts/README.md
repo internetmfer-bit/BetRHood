@@ -17,6 +17,9 @@ Onchain storage and messaging on Robinhood Chain. Two primitives:
   owner-allowlisted ERC-721 or ERC-1155 collection. The allowlist is unbounded; the voter names
   which allowlisted collection they're voting with, so eligibility is one `balanceOf` call
   rather than a scan over every allowlisted collection.
+- **`Follow.sol`** — public, permanent follow graph. Anyone can follow or unfollow any address
+  (except themselves); both directions (who you follow, who follows you) are separately
+  indexed, since `Messaging.sol` can't answer "who follows me" efficiently on its own.
 
 No contract here does deletion. Nothing is pinned or garbage-collected — the chain itself is
 the persistence layer.

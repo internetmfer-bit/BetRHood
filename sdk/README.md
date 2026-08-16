@@ -211,6 +211,31 @@ Owner-only (the wallet that deployed `Upvote`) — reverts otherwise. ERC-1155 c
 one specific `tokenId` (e.g. a particular badge), since ERC-1155 has no "any token in this
 collection" concept the way ERC-721's `balanceOf` does.
 
+### Follow — public follow graph
+
+Anyone can follow or unfollow any address (except themselves) — no approval, no privacy
+setting, visible to everyone.
+
+```ts
+follow(publicClient, walletClient, followee: Address, options?: { followAddress?: Address }) => Promise<Hex>
+unfollow(publicClient, walletClient, followee: Address, options?: { followAddress?: Address }) => Promise<Hex>
+```
+Throws `CannotFollowSelfError`, `AlreadyFollowingError`, or `NotFollowingError` as appropriate.
+
+```ts
+isFollowing(publicClient, follower: Address, followee: Address, options?: { followAddress?: Address }) => Promise<boolean>
+getFollowerCount(publicClient, who: Address, options?: { followAddress?: Address }) => Promise<bigint>
+getFollowingCount(publicClient, who: Address, options?: { followAddress?: Address }) => Promise<bigint>
+```
+
+```ts
+getFollowing(publicClient, who: Address, options?: { followAddress?: Address }) => Promise<Address[]>
+getFollowers(publicClient, who: Address, options?: { followAddress?: Address }) => Promise<Address[]>
+```
+Both walk the full follow history and filter to currently-active follows (unfollowing doesn't
+erase the historical record on chain, but these two only ever return people you actually still
+follow / who actually still follow you).
+
 ### Utilities
 
 - **`toKey(key: string): Hex`** — the exact keccak256 hashing `upload()`/`resolve()` use
