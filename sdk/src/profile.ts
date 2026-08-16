@@ -119,6 +119,55 @@ export async function getBio(
   return bytes.length === 0 ? "" : new TextDecoder().decode(bytes);
 }
 
+export interface DirectoryEntry {
+  address: Address;
+  name: string;
+}
+
+/**
+ * Every address that currently has a display name set, newest-first by when the name was
+ * (last) set — built by scanning `NameSet` events rather than a contract-side index, since
+ * `Profile` itself has no way to enumerate every address that's ever called `setName`. An
+ * address that renamed multiple times appears once, with its current name; an address that
+ * renamed to an empty string is dropped (equivalent to never having set one). Cheap today —
+ * one log-fetch covers the whole history — but this does re-scan the entire event log every
+ * call, so a caller displaying this often should cache the result rather than re-fetching on
+ * every render.
+ */
+export async function getNameDirectory(
+  publicClient: PublicClient,
+  options?: { profileAddress?: Address; fromBlock?: bigint },
+): Promise<DirectoryEntry[]> {
+  const address = options?.profileAddress ?? addresses.profile;
+
+  const logs = await publicClient.getContractEvents({
+    address,
+    abi: ProfileAbi,
+    eventName: "NameSet",
+    fromBlock: options?.fromBlock ?? 0n,
+    toBlock: "latest",
+  });
+
+  // Ascending by (blockNumber, logIndex) so the last write per address wins below — most RPC
+  // nodes already return logs in this order, but that's not a guarantee worth relying on.
+  const sorted = [...logs].sort((a, b) => {
+    const blockDiff = (a.blockNumber ?? 0n) - (b.blockNumber ?? 0n);
+    if (blockDiff !== 0n) return blockDiff < 0n ? -1 : 1;
+    return (a.logIndex ?? 0) - (b.logIndex ?? 0);
+  });
+
+  const latest = new Map<Address, string>();
+  for (const log of sorted) {
+    const args = (log as unknown as { args: { who: Address; name: string } }).args;
+    latest.set(args.who, args.name);
+  }
+
+  return [...latest.entries()]
+    .filter(([, name]) => name.length > 0)
+    .reverse()
+    .map(([entryAddress, name]) => ({ address: entryAddress, name }));
+}
+
 export async function getProfile(
   publicClient: PublicClient,
   who: Address,

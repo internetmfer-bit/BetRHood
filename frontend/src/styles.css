@@ -203,6 +203,14 @@ a { color: var(--matrix); }
 }
 .menu-item:hover { background: var(--black-raised-2); color: var(--matrix); }
 
+.search-wrap { position: relative; }
+.search-field { width: 220px; max-width: 100%; padding: 6px 10px; }
+.search-results { left: 0; right: auto; max-height: 320px; overflow-y: auto; }
+.search-hint { color: var(--text-faint); cursor: default; }
+.search-result { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.search-result-name { color: var(--text); font-family: var(--font-mono); }
+.search-result-address { color: var(--text-faint); font-size: 0.85rem; font-family: var(--font-mono); }
+
 .hint { color: var(--text-faint); font-size: 1rem; }
 .link-preview { word-break: break-all; }
 .error { color: var(--error); font-size: 1rem; }

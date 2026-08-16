@@ -25,9 +25,11 @@ export {
   getProfile,
   getProfilePicture,
   getBio,
+  getNameDirectory,
   NameTooLongError,
   BioTooLongError,
   type Profile,
+  type DirectoryEntry,
 } from "./profile.js";
 
 export {

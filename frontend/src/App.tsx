@@ -2,6 +2,7 @@ import { Link, Route, Routes } from "react-router-dom";
 import { ConnectButton } from "./components/ConnectButton.js";
 import { NetworkBanner } from "./components/NetworkBanner.js";
 import { TrendingTicker } from "./components/TrendingTicker.js";
+import { UserSearch } from "./components/UserSearch.js";
 import { Agents } from "./pages/Agents.js";
 import { Feed } from "./pages/Feed.js";
 import { Home } from "./pages/Home.js";
@@ -28,6 +29,7 @@ export default function App() {
           <Link to="/feed">Onchain Social</Link>
           <Link to="/agents">For Agents</Link>
         </nav>
+        <UserSearch />
         <ConnectButton />
       </header>
 

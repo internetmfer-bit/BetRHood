@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, defineChain, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { getBio, getProfile, getProfilePicture, setBio, setName, setPicture } from "../src/profile.js";
+import { getBio, getNameDirectory, getProfile, getProfilePicture, setBio, setName, setPicture } from "../src/profile.js";
 import { ANVIL_RPC, startChain, stopChain, TEST_PRIVATE_KEY, type TestAddresses } from "./setup.js";
 
 const anvilChain = defineChain({
@@ -94,5 +94,46 @@ describe("Profile", () => {
     await expect(
       setBio(publicClient, walletClient, tooLong, { storageAddress: addresses.storage }),
     ).rejects.toThrow(/281 bytes, max is 280/);
+  });
+
+  describe("getNameDirectory", () => {
+    it("includes an address once it sets a name", async () => {
+      // Anvil default account #1 — verified against anvil's own printed key list.
+      const alice = privateKeyToAccount("0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d");
+      const aliceWallet = createWalletClient({ account: alice, chain: anvilChain, transport: http() });
+      await setName(publicClient, aliceWallet, "alice", { profileAddress: addresses.profile });
+
+      const directory = await getNameDirectory(publicClient, { profileAddress: addresses.profile });
+      expect(directory.find((e) => e.address.toLowerCase() === alice.address.toLowerCase())).toEqual({
+        address: alice.address,
+        name: "alice",
+      });
+      // "cody.bet" was set on account #0 earlier in this file — confirms multiple addresses coexist.
+      expect(directory.some((e) => e.name === "cody.bet")).toBe(true);
+    });
+
+    it("reflects only the most recent name after a rename, not both", async () => {
+      // Anvil default account #2.
+      const bob = privateKeyToAccount("0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a");
+      const bobWallet = createWalletClient({ account: bob, chain: anvilChain, transport: http() });
+      await setName(publicClient, bobWallet, "bob-old", { profileAddress: addresses.profile });
+      await setName(publicClient, bobWallet, "bob-new", { profileAddress: addresses.profile });
+
+      const directory = await getNameDirectory(publicClient, { profileAddress: addresses.profile });
+      const entries = directory.filter((e) => e.address.toLowerCase() === bob.address.toLowerCase());
+      expect(entries).toHaveLength(1);
+      expect(entries[0].name).toBe("bob-new");
+    });
+
+    it("drops an address that renamed to an empty string", async () => {
+      // Anvil default account #3.
+      const carol = privateKeyToAccount("0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6");
+      const carolWallet = createWalletClient({ account: carol, chain: anvilChain, transport: http() });
+      await setName(publicClient, carolWallet, "carol-temp", { profileAddress: addresses.profile });
+      await setName(publicClient, carolWallet, "", { profileAddress: addresses.profile });
+
+      const directory = await getNameDirectory(publicClient, { profileAddress: addresses.profile });
+      expect(directory.some((e) => e.address.toLowerCase() === carol.address.toLowerCase())).toBe(false);
+    });
   });
 });

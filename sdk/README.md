@@ -208,6 +208,18 @@ getProfilePicture(publicClient, who: Address, options?: { profileAddress?: Addre
 `hasPicture` first rather than just trying to resolve and getting back nothing, so a `null`
 here is unambiguous.
 
+```ts
+interface DirectoryEntry { address: Address; name: string }
+getNameDirectory(publicClient, options?: { profileAddress?: Address; fromBlock?: bigint }) => Promise<DirectoryEntry[]>
+```
+Every address that currently has a name set, newest-first by when the name was (last) set —
+`Profile` has no onchain way to enumerate every address that's ever called `setName`, so this
+builds the list by scanning the contract's `NameSet` event history instead and keeping the
+latest name per address (a rename replaces the old entry; renaming to `""` drops it). Cheap
+today — one log-fetch covers the whole history — but it re-scans everything on every call, so
+a caller that shows this often (e.g. a search box) should cache the result rather than calling
+it on every keystroke or render.
+
 ### Upvote — voting, open or NFT-gated
 
 ```ts
