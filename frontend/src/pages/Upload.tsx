@@ -97,6 +97,7 @@ export function Upload() {
             className="field"
             value={key}
             onChange={(e) => setKey(e.target.value)}
+            onFocus={(e) => e.target.select()}
             placeholder="Key (this becomes part of the link)"
           />
           <p className="hint link-preview">
