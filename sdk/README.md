@@ -106,8 +106,10 @@ postMessage(publicClient, walletClient, topic: string, body: Uint8Array | string
 Posts `body` under `topic`. Unlike `upload()`, this is **not** compressed — messages are meant
 to be short. `sender` on the resulting `Message` is always `msg.sender`; there's no way to post
 "on behalf of" another address, by design. Throws `EmptyBodyError` if `body` is empty.
-Topics longer than 32 bytes get silently truncated by the underlying encoding — keep them
-short and human-readable (`"general"`, `"showcase"`, not a paragraph).
+Topics are hex-encoded into a fixed 32 bytes — a topic string over 32 ASCII bytes **throws**
+rather than truncating, so keep them short and human-readable (`"general"`, `"showcase"`, not a
+paragraph, and never a raw address — see the `comment:<id>` convention below for why per-post
+rather than per-address topics are the way to key something to a specific message).
 
 ```ts
 getMessage(publicClient, messageId: bigint, options?: { messagingAddress?: Address }) => Promise<Message>
@@ -122,6 +124,53 @@ getMessagesBySender(publicClient, sender: Address, options?: { messagingAddress?
 ```
 Everything under a topic, or everything one address has posted — oldest first, via the
 contract's own indexes (not a scan).
+
+```ts
+getTopicMessageCount(publicClient, topic: string, options?: { messagingAddress?: Address }) => Promise<bigint>
+```
+A single cheap view call — how many messages exist under `topic`, without fetching any of
+their bodies. Use this for a count/badge where you don't need the messages themselves.
+
+```ts
+getRecentMessagesBySender(publicClient, sender: Address, limit: number, options?: { messagingAddress?: Address })
+  => Promise<Message[]>
+```
+The most recent `limit` messages `sender` has posted (across every topic), newest first —
+windows from the tail of their index instead of fetching their entire history. The right
+choice for building a bounded feed out of a prolific poster's activity.
+
+### Social feed — conventions built on Messaging + Upvote
+
+There's no dedicated "Social" contract — a public feed with likes, comments, and reposts is
+entirely conventions layered on `Messaging` and `Upvote`, the same way profile bio/picture are
+conventions layered on `Storage` (see "Core concepts" above). Anything posting or reading a feed
+— this SDK's own frontend included — should follow these exactly so everyone's clients agree on
+what a "post" is:
+
+- **Feed posts and reposts** go to topic `"social"`, as a JSON body so the two shapes can share
+  one topic and still be told apart:
+  ```ts
+  { type: "post", text: string }
+  { type: "repost", originalMessageId: string }  // string, not bigint — JSON has no bigint
+  ```
+  A repost always points at the **canonical** original id — reposting something that's already
+  a repost points at the id *it* points to, never at the intermediate repost's own id, so a
+  repost chain always collapses to one id.
+- **A post's own feed** is every `"social"`-topic message it's ever sent — filter
+  `getMessagesBySender`/`getRecentMessagesBySender`'s results down to `topic === socialTopicHex`
+  (compute `socialTopicHex` the same way any other topic is compared: hex-encode `"social"`).
+- **Comments** go to a per-post topic, `` `comment:${messageId}` `` — plain text, not JSON
+  (freeform discussion, not a structured record). Message ids are small decimal numbers for the
+  practical lifetime of the protocol, so this always stays well under the 32-byte topic cap,
+  unlike a per-address topic (an address alone is already 42 characters).
+- **Likes** are just `upvote(publicClient, walletClient, messageId)` against the already-deployed
+  `Upvote` contract, keyed by the **canonical** id from above — no changes needed, since `Upvote`
+  was already generic by `messageId` with no topic scoping.
+
+The reference implementation (ranking, bounded fan-out across a follow list, batch name
+resolution) lives in the frontend app at `frontend/src/social.ts` — not part of this package,
+since it composes the primitives above rather than adding new ones, but worth reading if you're
+building an alternate client and want your feed to interoperate with everyone else's.
 
 ### Profile — name, bio, picture
 
