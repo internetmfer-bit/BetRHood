@@ -5,6 +5,7 @@ import { TrendingTicker } from "./components/TrendingTicker.js";
 import { Agents } from "./pages/Agents.js";
 import { Feed } from "./pages/Feed.js";
 import { Home } from "./pages/Home.js";
+import { NFTs } from "./pages/NFTs.js";
 import { Profile } from "./pages/Profile.js";
 import { ProfileView } from "./pages/ProfileView.js";
 import { Topic } from "./pages/Topic.js";
@@ -25,6 +26,7 @@ export default function App() {
           <Link to="/profile">Profile</Link>
           <Link to="/upload">Upload</Link>
           <Link to="/trending">Tokens</Link>
+          <Link to="/nfts">NFTs</Link>
           <Link to="/feed">Onchain Social</Link>
           <Link to="/agents">For Agents</Link>
         </nav>
@@ -40,6 +42,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/trending" element={<Trending />} />
+          <Route path="/nfts" element={<NFTs />} />
           <Route path="/feed" element={<Feed />} />
           <Route path="/u/:address" element={<ProfileView />} />
           <Route path="/topic/:topic" element={<Topic />} />
