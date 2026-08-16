@@ -16,8 +16,8 @@ export default function App() {
           BetRHood
         </Link>
         <nav className="nav-links">
-          <Link to="/upload">Upload</Link>
           <Link to="/profile">Profile</Link>
+          <Link to="/upload">Upload</Link>
           <Link to="/agents">For Agents</Link>
         </nav>
         <ConnectButton />
