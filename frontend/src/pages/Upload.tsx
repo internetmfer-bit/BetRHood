@@ -12,6 +12,7 @@ export function Upload() {
   const { data: walletClient } = useWalletClient();
 
   const [file, setFile] = useState<File | null>(null);
+  const [key, setKey] = useState("");
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
@@ -20,22 +21,24 @@ export function Upload() {
   const [caption, setCaption] = useState("");
 
   const chunkEstimate = file ? Math.max(1, Math.ceil(file.size / CHUNK_SIZE)) : 0;
+  const previewLink = address && key.trim() ? `gateway.betrhood.com/${address}/${encodeURIComponent(key.trim())}` : null;
 
   async function handleUpload() {
-    if (!file || !publicClient || !walletClient || !address) return;
+    const trimmedKey = key.trim();
+    if (!file || !trimmedKey || !publicClient || !walletClient || !address) return;
     setStage("uploading");
     setError(null);
 
     try {
       const buffer = new Uint8Array(await file.arrayBuffer());
-      await upload(publicClient, walletClient, file.name, buffer);
+      await upload(publicClient, walletClient, trimmedKey, buffer);
 
       if (shareToShowcase) {
-        const body = JSON.stringify({ key: file.name, caption });
+        const body = JSON.stringify({ key: trimmedKey, caption });
         await postMessage(publicClient, walletClient, SHOWCASE_TOPIC, body);
       }
 
-      setLink(`gateway.betrhood.com/${address}/${file.name}`);
+      setLink(`gateway.betrhood.com/${address}/${encodeURIComponent(trimmedKey)}`);
       setStage("done");
     } catch (err) {
       setError((err as Error).message);
@@ -67,7 +70,9 @@ export function Upload() {
         <input
           type="file"
           onChange={(e) => {
-            setFile(e.target.files?.[0] ?? null);
+            const chosen = e.target.files?.[0] ?? null;
+            setFile(chosen);
+            setKey(chosen?.name ?? "");
             setStage("idle");
             setLink(null);
           }}
@@ -83,11 +88,25 @@ export function Upload() {
               {(file.size / 1024).toFixed(1)} KB → {chunkEstimate === 1 ? "direct" : `${chunkEstimate} chunks`}
             </b>
           </div>
-          <div className="kv">
-            <span>key</span>
-            <b>{file.name}</b>
-          </div>
         </div>
+      )}
+
+      {file && (
+        <>
+          <input
+            className="field"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder="Key (this becomes part of the link)"
+          />
+          <p className="hint link-preview">
+            {previewLink ? (
+              <>Link will be: <b>{previewLink}</b></>
+            ) : (
+              "Pick a key to see the link."
+            )}
+          </p>
+        </>
       )}
 
       {file && stage !== "done" && (
@@ -111,7 +130,7 @@ export function Upload() {
             />
           )}
 
-          <button className="btn btn-primary" onClick={handleUpload} disabled={stage === "uploading"}>
+          <button className="btn btn-primary" onClick={handleUpload} disabled={stage === "uploading" || !key.trim()}>
             {stage === "uploading" ? "Uploading…" : "Upload"}
           </button>
         </>

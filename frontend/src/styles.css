@@ -154,6 +154,7 @@ a { color: var(--matrix); }
 .menu-item:hover { background: var(--black-raised-2); color: var(--matrix); }
 
 .hint { color: var(--text-faint); font-size: 0.92rem; }
+.link-preview { word-break: break-all; }
 .error { color: var(--error); font-size: 0.92rem; }
 
 /* ---------- Form bits ---------- */
