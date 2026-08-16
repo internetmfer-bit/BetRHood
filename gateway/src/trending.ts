@@ -72,22 +72,30 @@ export function dedupeBySymbol(tokens: TrendingToken[]): TrendingToken[] {
   return result;
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /** Real tokens only — if GeckoTerminal has nothing (or errors on every page), this returns an
  * empty array rather than fabricating placeholder entries. Callers should render "nothing
  * trending yet" for an empty result, not treat it as a failure. A single failed page doesn't
- * fail the whole fetch — the other pages' real data still comes back. */
+ * fail the whole fetch — the other pages' real data still comes back.
+ *
+ * Fetched sequentially with a short delay between requests, not in parallel — a burst of
+ * simultaneous requests from a Worker's shared IP range triggers GeckoTerminal's free-tier
+ * rate limit far more readily than the same requests spread out by a couple hundred ms. */
 export async function fetchTrendingPools(limit = MAX_TOKENS): Promise<TrendingToken[]> {
-  const pages = await Promise.all(
-    Array.from({ length: PAGES_TO_FETCH }, async (_, i) => {
-      try {
-        const res = await fetch(POOLS_URL(i + 1));
-        if (!res.ok) return [];
-        return parseTrendingPools(await res.json());
-      } catch {
-        return [];
-      }
-    }),
-  );
+  const pages: TrendingToken[][] = [];
+  for (let i = 0; i < PAGES_TO_FETCH; i++) {
+    if (i > 0) await sleep(250);
+    try {
+      const res = await fetch(POOLS_URL(i + 1));
+      if (!res.ok) continue;
+      pages.push(parseTrendingPools(await res.json()));
+    } catch {
+      // skip this page, keep whatever the other pages returned
+    }
+  }
 
   return dedupeBySymbol(pages.flat()).slice(0, limit);
 }
