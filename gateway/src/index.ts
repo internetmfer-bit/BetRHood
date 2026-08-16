@@ -1,11 +1,26 @@
-import { type Address, createPublicClient, http } from "viem";
+import { type Address, type Transport, createPublicClient, fallback, http } from "viem";
 import { addresses, resolve, robinhoodChain } from "@betrhood/sdk";
 import { contentTypeForKey } from "./contentType.js";
 import { InvalidLinkError, parseLink } from "./parseLink.js";
 
 export interface Env {
+  /** Public endpoint, no API key — safe to commit as a plain var. Free but shared/rate-limited,
+   * so it's the last resort, not the first choice. */
   RPC_URL?: string;
+  /** Dedicated free-tier providers (Alchemy, Chainstack, ...) — these URLs embed an API key,
+   * so they must be set as Cloudflare *secrets* (dashboard "Encrypt" toggle), never committed
+   * to wrangler.jsonc. Either or both may be unset; the chain below degrades gracefully. */
+  RPC_URL_PRIMARY?: string;
+  RPC_URL_SECONDARY?: string;
   STORAGE_ADDRESS?: string;
+}
+
+/** Tries the dedicated providers first (highest free-tier limits), falling back to the next
+ * one on failure, and only reaching the shared public endpoint if both are unset or down. */
+function buildTransport(env: Env): Transport {
+  const urls = [env.RPC_URL_PRIMARY, env.RPC_URL_SECONDARY, env.RPC_URL || robinhoodChain.rpcUrls.default.http[0]]
+    .filter((url): url is string => Boolean(url));
+  return urls.length === 1 ? http(urls[0]) : fallback(urls.map((url) => http(url)));
 }
 
 /** Content is mutable (Storage.sol versions can be overwritten), so this is a short cache,
@@ -59,7 +74,7 @@ export default {
 
     const publicClient = createPublicClient({
       chain: robinhoodChain,
-      transport: http(env.RPC_URL || robinhoodChain.rpcUrls.default.http[0]),
+      transport: buildTransport(env),
     });
 
     const storageAddress = (env.STORAGE_ADDRESS as Address | undefined) || addresses.storage;
