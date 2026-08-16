@@ -14,8 +14,13 @@ export function Profile() {
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savedNotice, setSavedNotice] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const loadedPictureUrl = useRef<string | null>(null);
+  // What's actually on chain right now, so Save can skip fields that haven't changed instead
+  // of paying gas to write the exact same value back.
+  const savedName = useRef("");
+  const savedBio = useRef("");
 
   useEffect(() => {
     if (!publicClient || !address) return;
@@ -29,6 +34,8 @@ export function Profile() {
       if (cancelled) return;
       setName(profile.name);
       setBio(bioText);
+      savedName.current = profile.name;
+      savedBio.current = bioText;
 
       if (profile.hasPicture) {
         const bytes = await getProfilePicture(publicClient, address);
@@ -64,13 +71,30 @@ export function Profile() {
       setError("Wallet isn't ready yet — wait a moment and try again, or reconnect it.");
       return;
     }
+
+    const trimmedName = name.trim();
+    const trimmedBio = bio.trim();
+    const nameChanged = trimmedName !== savedName.current;
+    const bioChanged = trimmedBio.length > 0 && trimmedBio !== savedBio.current;
+
+    if (!nameChanged && !bioChanged && !pendingFile) {
+      setSavedNotice(true);
+      setTimeout(() => setSavedNotice(false), 2000);
+      return;
+    }
+
     setSaving(true);
     setError(null);
+    setSavedNotice(false);
 
     try {
-      await setNameOnChain(publicClient, walletClient, name);
-      if (bio.trim().length > 0) {
-        await setBioOnChain(publicClient, walletClient, bio);
+      if (nameChanged) {
+        await setNameOnChain(publicClient, walletClient, trimmedName);
+        savedName.current = trimmedName;
+      }
+      if (bioChanged) {
+        await setBioOnChain(publicClient, walletClient, trimmedBio);
+        savedBio.current = trimmedBio;
       }
       if (pendingFile) {
         const buffer = new Uint8Array(await pendingFile.arrayBuffer());
@@ -148,6 +172,7 @@ export function Profile() {
       </button>
 
       {error && <p className="error">{error}</p>}
+      {savedNotice && <p className="hint">Nothing changed — nothing to save.</p>}
     </div>
   );
 }
