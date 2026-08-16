@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { type Address } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { UpvoteButton } from "../components/UpvoteButton";
 
 const RECENT_LIMIT = 30;
 const ACTIVE_PROFILES_LIMIT = 6;
@@ -45,6 +46,7 @@ interface TopicGroup {
 }
 
 interface ShowcaseItem {
+  id: bigint;
   sender: Address;
   key: string;
   caption: string;
@@ -131,7 +133,9 @@ export function Home() {
           .reverse()
           .map((m): ShowcaseItem | null => {
             const parsed = parseShowcaseBody(m.body);
-            return parsed ? { sender: m.sender, key: parsed.key, caption: parsed.caption, timestamp: m.timestamp } : null;
+            return parsed
+              ? { id: m.id, sender: m.sender, key: parsed.key, caption: parsed.caption, timestamp: m.timestamp }
+              : null;
           })
           .filter((x): x is ShowcaseItem => x !== null);
         if (!cancelled) setShowcase(items);
@@ -230,12 +234,17 @@ export function Home() {
           <p className="hint">Nothing shared yet — upload something and share it.</p>
         ) : (
           <div className="apps-grid">
-            {showcase.map((item, i) => (
-              <Link to={`/view/${item.sender}/${encodeURIComponent(item.key)}`} className="app-card" key={i}>
-                <p className="app-card-title">{item.key}</p>
-                <p className="app-card-desc">{item.caption || "—"}</p>
-                <p className="section-note">by {truncate(item.sender)}</p>
-              </Link>
+            {showcase.map((item) => (
+              <div className="app-card" key={item.id.toString()}>
+                <Link to={`/view/${item.sender}/${encodeURIComponent(item.key)}`} className="app-card-link">
+                  <p className="app-card-title">{item.key}</p>
+                  <p className="app-card-desc">{item.caption || "—"}</p>
+                  <p className="section-note">by {truncate(item.sender)}</p>
+                </Link>
+                <div className="app-card-footer">
+                  <UpvoteButton messageId={item.id} />
+                </div>
+              </div>
             ))}
           </div>
         )}

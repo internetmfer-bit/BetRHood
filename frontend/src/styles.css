@@ -265,8 +265,10 @@ a { color: var(--matrix); }
   transition: border-color 0.15s;
 }
 .app-card:hover { border-color: var(--lime); }
+.app-card-link { display: block; text-decoration: none; color: inherit; }
 .app-card-title { font-family: var(--font-display); font-size: 0.95rem; color: var(--lime); margin: 0 0 6px; }
 .app-card-desc { font-size: 0.88rem; color: var(--text-soft); margin: 0; }
+.app-card-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 
 .thread-list { display: flex; flex-direction: column; gap: 2px; }
 .thread {
@@ -305,6 +307,33 @@ a { color: var(--matrix); }
 .post-meta a { color: var(--matrix); text-decoration: none; }
 .post-meta a:hover { text-decoration: underline; }
 .post-body { color: var(--text); font-size: 0.95rem; margin-top: 4px; white-space: pre-wrap; word-break: break-word; }
+.post-footer { margin-top: 8px; }
+
+.upvote { display: inline-flex; align-items: center; gap: 8px; }
+.upvote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--text-soft);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.upvote-btn:hover:not(:disabled) { border-color: var(--matrix); color: var(--matrix); }
+.upvote-btn:disabled { cursor: default; }
+.upvote-btn-disconnected { opacity: 0.4; }
+.upvote-btn-voted { border-color: var(--matrix); color: var(--matrix); }
+.upvote-arrow { font-size: 0.8rem; line-height: 1; }
+.upvote-count { font-variant-numeric: tabular-nums; }
+.upvote-hint { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-faint); }
+.upvote-tx { color: var(--matrix); text-decoration: none; }
+.upvote-tx:hover { text-decoration: underline; }
+.upvote-error { font-family: var(--font-mono); font-size: 0.85rem; color: #ff6b6b; }
 
 .reply-box { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 

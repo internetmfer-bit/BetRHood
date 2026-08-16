@@ -2,6 +2,7 @@ import { getMessagesByTopic, postMessage, type Message } from "@betrhood/sdk";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { UpvoteButton } from "../components/UpvoteButton";
 
 function truncate(address: string): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -71,13 +72,16 @@ export function Topic() {
       {!loading && messages.length === 0 && <p className="hint">Nothing here yet — be the first to post.</p>}
 
       <div className="thread-list">
-        {messages.map((m, i) => (
-          <div className="post" key={i}>
+        {messages.map((m) => (
+          <div className="post" key={m.id.toString()}>
             <div className="post-meta">
               <Link to={`/u/${m.sender}`}>{truncate(m.sender)}</Link>
               <span> · {new Date(Number(m.timestamp) * 1000).toLocaleString()}</span>
             </div>
             <div className="post-body">{bodyText(m.body)}</div>
+            <div className="post-footer">
+              <UpvoteButton messageId={m.id} />
+            </div>
           </div>
         ))}
       </div>

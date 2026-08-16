@@ -14,6 +14,7 @@ import MessagingAbiJson from "./abi/Messaging.json" with { type: "json" };
 const MessagingAbi = MessagingAbiJson as Abi;
 
 export interface Message {
+  id: bigint;
   sender: Address;
   topic: Hex;
   body: Uint8Array;
@@ -87,7 +88,7 @@ export async function getMessage(
     args: [messageId],
   })) as [Address, Hex, Hex, bigint];
 
-  return { sender, topic, body: hexToBytes(body), timestamp };
+  return { id: messageId, sender, topic, body: hexToBytes(body), timestamp };
 }
 
 /** Returns every message posted under `topic`, oldest first. */
