@@ -61,7 +61,13 @@ export function Viewer() {
     };
   }, [publicClient, address, key]);
 
-  if (!address || !key) return <p className="error">Missing address or key.</p>;
+  if (!address || !key) {
+    return (
+      <div className="panel">
+        <p className="error">Missing address or key.</p>
+      </div>
+    );
+  }
 
   const gatewayLink = `betrhood.com/${address}/${key}`;
 

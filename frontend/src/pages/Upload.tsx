@@ -41,7 +41,11 @@ export function Upload() {
   }
 
   if (!isConnected) {
-    return <p className="hint">Connect a wallet to upload.</p>;
+    return (
+      <div className="panel">
+        <p className="hint">Connect a wallet to upload.</p>
+      </div>
+    );
   }
 
   return (

@@ -77,7 +77,11 @@ export function Profile() {
   }
 
   if (!isConnected) {
-    return <p className="hint">Connect a wallet to edit your profile.</p>;
+    return (
+      <div className="panel">
+        <p className="hint">Connect a wallet to edit your profile.</p>
+      </div>
+    );
   }
 
   return (
