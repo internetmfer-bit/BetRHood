@@ -107,7 +107,7 @@ Posts `body` under `topic`. Unlike `upload()`, this is **not** compressed — me
 to be short. `sender` on the resulting `Message` is always `msg.sender`; there's no way to post
 "on behalf of" another address, by design. Throws `EmptyBodyError` if `body` is empty.
 Topics longer than 32 bytes get silently truncated by the underlying encoding — keep them
-short and human-readable (`"chess:game-2481"`, not a paragraph).
+short and human-readable (`"general"`, `"showcase"`, not a paragraph).
 
 ```ts
 getMessage(publicClient, messageId: bigint, options?: { messagingAddress?: Address }) => Promise<Message>

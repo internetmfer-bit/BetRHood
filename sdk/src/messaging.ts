@@ -28,7 +28,7 @@ export class EmptyBodyError extends Error {
 }
 
 /** Topic strings longer than 32 bytes are truncated by stringToHex — keep topics short and
- * human-readable (e.g. "chess:game-2481"), not arbitrary-length free text. */
+ * human-readable (e.g. "general", "showcase"), not arbitrary-length free text. */
 function topicToHex(topic: string): Hex {
   return stringToHex(topic, { size: 32 });
 }
