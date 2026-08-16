@@ -7,7 +7,8 @@ import {Upvote} from "../src/Upvote.sol";
 /// @notice Deploys Upvote standalone — separate from Deploy.s.sol so re-running this never
 /// touches the already-live Storage/Messaging/Profile contracts.
 /// @dev Reads the deployer key from the `PRIVATE_KEY` env var. The deployer becomes Upvote's
-/// owner (the address allowed to manage the collection allowlist).
+/// owner (the address allowed to manage the collection allowlist). Deploys with open voting
+/// already enabled — anyone can upvote with no NFT required until the owner turns it off.
 ///
 /// Dry run (no gas spent, no broadcast):
 ///   forge script script/DeployUpvote.s.sol --rpc-url robinhood_mainnet
@@ -24,7 +25,7 @@ contract DeployUpvote is Script {
 
         vm.startBroadcast(deployerKey);
 
-        upvote = new Upvote(deployer);
+        upvote = new Upvote(deployer, true);
         console.log("Upvote deployed at:", address(upvote));
 
         vm.stopBroadcast();

@@ -36,9 +36,12 @@ export {
   allowCollection721,
   allowCollection1155,
   removeCollection,
+  isOpenVotingEnabled,
+  setOpenVoting,
   CollectionNotAllowedError,
   AlreadyVotedError,
   NoBalanceError,
+  OpenVotingDisabledError,
   type CollectionStandard,
   type AllowedCollection,
 } from "./upvote.js";

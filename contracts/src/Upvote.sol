@@ -12,13 +12,16 @@ interface IERC1155BalanceOf {
 }
 
 /// @title Upvote
-/// @notice Gates one upvote per address per message behind ownership of an allowlisted NFT.
-/// The allowlist is owner-managed and unbounded — voters name which allowlisted collection
-/// they're voting with, so eligibility is a single `balanceOf` call rather than a scan over
-/// every allowlisted collection (which would get gas-unsafe as the list grows).
-/// @dev ERC-1155 collections gate on a single, owner-chosen token id (e.g. "the badge with id
-/// 3"), not "any token in the collection" — ERC-1155 has no such concept natively, and per-id
-/// balances keep the check as cheap as the ERC-721 case.
+/// @notice One upvote per address per message. Two independent ways to qualify, both owner
+/// controlled: (1) hold a token from an owner-allowlisted NFT collection, or (2) vote with no
+/// NFT at all when the owner has "open voting" turned on. Both paths share the same
+/// one-vote-per-address-per-message limit.
+/// @dev The allowlist is unbounded — voters name which allowlisted collection they're voting
+/// with, so eligibility is a single `balanceOf` call rather than a scan over every allowlisted
+/// collection (which would get gas-unsafe as the list grows). ERC-1155 collections gate on a
+/// single, owner-chosen token id (e.g. "the badge with id 3"), not "any token in the
+/// collection" — ERC-1155 has no such concept natively, and per-id balances keep the check as
+/// cheap as the ERC-721 case.
 contract Upvote is Ownable {
     enum Standard {
         ERC721,
@@ -35,6 +38,10 @@ contract Upvote is Ownable {
     mapping(uint256 messageId => mapping(address voter => bool)) public hasVoted;
     mapping(uint256 messageId => uint256) public upvoteCount;
 
+    /// @notice When true, anyone can upvote by passing `collection = address(0)` to `upvote()`
+    /// — no NFT required. Independent of the collection allowlist; both can be active at once.
+    bool public openVotingEnabled;
+
     /// @dev Every collection ever allowlisted, for enumeration — entries are never removed
     /// from this list even after `removeCollection`, since `collections[c].allowed` is the
     /// actual source of truth. A frontend walks this list and filters on `allowed`.
@@ -43,14 +50,22 @@ contract Upvote is Ownable {
 
     event CollectionAllowed(address indexed collection, Standard standard, uint256 tokenId);
     event CollectionRemoved(address indexed collection);
+    event OpenVotingSet(bool enabled);
     event Upvoted(uint256 indexed messageId, address indexed voter, address indexed collection);
 
     error CollectionNotAllowed();
     error NoBalance();
     error AlreadyVoted();
+    error OpenVotingDisabled();
 
-    constructor(address owner_) {
+    constructor(address owner_, bool openVotingEnabled_) {
         _initializeOwner(owner_);
+        openVotingEnabled = openVotingEnabled_;
+    }
+
+    function setOpenVoting(bool enabled) external onlyOwner {
+        openVotingEnabled = enabled;
+        emit OpenVotingSet(enabled);
     }
 
     function allowCollection721(address collection) external onlyOwner {
@@ -66,19 +81,25 @@ contract Upvote is Ownable {
         emit CollectionRemoved(collection);
     }
 
-    /// @notice Upvotes `messageId`, proving eligibility via ownership of `collection`.
-    /// @dev `collection` must be currently allowlisted and the caller must hold at least one
-    /// qualifying token. One vote per address per message, regardless of how many qualifying
-    /// NFTs the caller holds or which collection they used to prove it.
+    /// @notice Upvotes `messageId`. Pass `collection = address(0)` to vote via open voting
+    /// (reverts with `OpenVotingDisabled` if the owner hasn't enabled it) — no NFT required.
+    /// Pass a real allowlisted collection address to instead prove eligibility by holding a
+    /// qualifying token from it. One vote per address per message either way, regardless of
+    /// how many qualifying NFTs the caller holds or which collection they used to prove it.
     function upvote(uint256 messageId, address collection) external {
-        Collection memory c = collections[collection];
-        if (!c.allowed) revert CollectionNotAllowed();
         if (hasVoted[messageId][msg.sender]) revert AlreadyVoted();
 
-        uint256 balance = c.standard == Standard.ERC721
-            ? IERC721BalanceOf(collection).balanceOf(msg.sender)
-            : IERC1155BalanceOf(collection).balanceOf(msg.sender, c.tokenId);
-        if (balance == 0) revert NoBalance();
+        if (collection == address(0)) {
+            if (!openVotingEnabled) revert OpenVotingDisabled();
+        } else {
+            Collection memory c = collections[collection];
+            if (!c.allowed) revert CollectionNotAllowed();
+
+            uint256 balance = c.standard == Standard.ERC721
+                ? IERC721BalanceOf(collection).balanceOf(msg.sender)
+                : IERC1155BalanceOf(collection).balanceOf(msg.sender, c.tokenId);
+            if (balance == 0) revert NoBalance();
+        }
 
         hasVoted[messageId][msg.sender] = true;
         ++upvoteCount[messageId];

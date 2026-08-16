@@ -1,4 +1,4 @@
-import type { Abi, Address, Hex, PublicClient, WalletClient } from "viem";
+import { type Abi, type Address, type Hex, type PublicClient, type WalletClient, zeroAddress } from "viem";
 import { addresses } from "./addresses.js";
 import UpvoteAbiJson from "./abi/Upvote.json" with { type: "json" };
 
@@ -31,6 +31,12 @@ export class NoBalanceError extends Error {
   }
 }
 
+export class OpenVotingDisabledError extends Error {
+  constructor() {
+    super("Open voting is currently disabled — pass an allowlisted collection to upvote() instead, or enable open voting first.");
+  }
+}
+
 function standardFromEnum(value: number): CollectionStandard {
   return value === 1 ? "ERC1155" : "ERC721";
 }
@@ -41,19 +47,22 @@ function rethrowKnown(err: unknown): never {
   if (message.includes("CollectionNotAllowed")) throw new CollectionNotAllowedError();
   if (message.includes("AlreadyVoted")) throw new AlreadyVotedError();
   if (message.includes("NoBalance")) throw new NoBalanceError();
+  if (message.includes("OpenVotingDisabled")) throw new OpenVotingDisabledError();
   throw err;
 }
 
 /**
- * Upvotes `messageId`, proving eligibility by naming an allowlisted `collection` the caller
- * holds a qualifying NFT from. One vote per address per message — voting again, or with a
- * collection the caller doesn't hold, reverts.
+ * Upvotes `messageId`. Omit `collection` (or pass nothing) to vote via open voting — no NFT
+ * required, only works if the owner has enabled it (throws `OpenVotingDisabledError`
+ * otherwise). Pass an allowlisted collection address to instead prove eligibility by holding a
+ * qualifying NFT from it. One vote per address per message either way — voting twice, or with
+ * a collection the caller doesn't hold, throws.
  */
 export async function upvote(
   publicClient: PublicClient,
   walletClient: WalletClient,
   messageId: bigint,
-  collection: Address,
+  collection?: Address,
   options?: { upvoteAddress?: Address },
 ): Promise<Hex> {
   if (!walletClient.account) throw new Error("walletClient must have an account attached.");
@@ -64,13 +73,45 @@ export async function upvote(
       address,
       abi: UpvoteAbi,
       functionName: "upvote",
-      args: [messageId, collection],
+      args: [messageId, collection ?? zeroAddress],
       account: walletClient.account,
     });
     return await walletClient.writeContract(request);
   } catch (err) {
     rethrowKnown(err);
   }
+}
+
+export async function isOpenVotingEnabled(
+  publicClient: PublicClient,
+  options?: { upvoteAddress?: Address },
+): Promise<boolean> {
+  return (await publicClient.readContract({
+    address: options?.upvoteAddress ?? addresses.upvote,
+    abi: UpvoteAbi,
+    functionName: "openVotingEnabled",
+  })) as boolean;
+}
+
+/** Turns open voting on or off. Owner-only. Independent of the collection allowlist — either
+ * or both can be active at once. */
+export async function setOpenVoting(
+  publicClient: PublicClient,
+  walletClient: WalletClient,
+  enabled: boolean,
+  options?: { upvoteAddress?: Address },
+): Promise<Hex> {
+  if (!walletClient.account) throw new Error("walletClient must have an account attached.");
+  const address = options?.upvoteAddress ?? addresses.upvote;
+
+  const { request } = await publicClient.simulateContract({
+    address,
+    abi: UpvoteAbi,
+    functionName: "setOpenVoting",
+    args: [enabled],
+    account: walletClient.account,
+  });
+  return walletClient.writeContract(request);
 }
 
 export async function getUpvoteCount(

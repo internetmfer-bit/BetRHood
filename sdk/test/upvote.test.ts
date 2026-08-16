@@ -7,7 +7,9 @@ import {
   getAllowedCollections,
   getUpvoteCount,
   hasVoted,
+  isOpenVotingEnabled,
   removeCollection,
+  setOpenVoting,
   upvote,
 } from "../src/upvote.js";
 import { ANVIL_RPC, startChain, stopChain, TEST_PRIVATE_KEY, type TestAddresses } from "./setup.js";
@@ -150,5 +152,47 @@ describe("upvote allowlist + voting", () => {
     await expect(
       upvote(publicClient, voterWallet, messageId, addresses.mockerc721, { upvoteAddress: addresses.upvote }),
     ).rejects.toThrow("isn't (or is no longer) allowlisted");
+  });
+});
+
+describe("open voting", () => {
+  it("is enabled by default (DeployUpvote.s.sol deploys it that way)", async () => {
+    expect(await isOpenVotingEnabled(publicClient, { upvoteAddress: addresses.upvote })).toBe(true);
+  });
+
+  it("lets anyone vote with no collection argument and no NFT held", async () => {
+    const noHoldings = privateKeyToAccount(
+      "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6",
+    );
+    const noHoldingsWallet = createWalletClient({ account: noHoldings, chain: anvilChain, transport: http() });
+
+    const messageId = BigInt(Date.now()) + 100n;
+    await upvote(publicClient, noHoldingsWallet, messageId, undefined, { upvoteAddress: addresses.upvote });
+
+    expect(await getUpvoteCount(publicClient, messageId, { upvoteAddress: addresses.upvote })).toBe(1n);
+    expect(await hasVoted(publicClient, messageId, noHoldings.address, { upvoteAddress: addresses.upvote })).toBe(
+      true,
+    );
+  });
+
+  it("rejects a second open vote on the same message from the same address", async () => {
+    const messageId = BigInt(Date.now()) + 101n;
+    await upvote(publicClient, voterWallet, messageId, undefined, { upvoteAddress: addresses.upvote });
+
+    await expect(
+      upvote(publicClient, voterWallet, messageId, undefined, { upvoteAddress: addresses.upvote }),
+    ).rejects.toThrow("already upvoted");
+  });
+
+  it("owner can disable open voting; re-enables it afterward so later tests aren't affected", async () => {
+    await setOpenVoting(publicClient, ownerWallet, false, { upvoteAddress: addresses.upvote });
+
+    const messageId = BigInt(Date.now()) + 102n;
+    await expect(
+      upvote(publicClient, voterWallet, messageId, undefined, { upvoteAddress: addresses.upvote }),
+    ).rejects.toThrow("Open voting is currently disabled");
+
+    await setOpenVoting(publicClient, ownerWallet, true, { upvoteAddress: addresses.upvote });
+    expect(await isOpenVotingEnabled(publicClient, { upvoteAddress: addresses.upvote })).toBe(true);
   });
 });

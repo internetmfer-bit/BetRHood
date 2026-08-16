@@ -17,7 +17,7 @@ contract UpvoteTest is Test {
     uint256 internal constant BADGE_ID = 3;
 
     function setUp() public {
-        upvote = new Upvote(owner);
+        upvote = new Upvote(owner, false);
         nft721 = new MockERC721();
         nft1155 = new MockERC1155();
     }
@@ -143,6 +143,69 @@ contract UpvoteTest is Test {
         vm.prank(alice);
         vm.expectRevert();
         upvote.removeCollection(address(nft721));
+    }
+
+    function test_OpenVoting_DisabledByDefault_Reverts() public {
+        vm.prank(alice);
+        vm.expectRevert(Upvote.OpenVotingDisabled.selector);
+        upvote.upvote(1, address(0));
+    }
+
+    function test_OpenVoting_WhenEnabled_AnyoneCanVoteNoNftNeeded() public {
+        vm.prank(owner);
+        upvote.setOpenVoting(true);
+
+        vm.prank(alice);
+        upvote.upvote(1, address(0));
+
+        assertEq(upvote.upvoteCount(1), 1);
+        assertTrue(upvote.hasVoted(1, alice));
+    }
+
+    function test_OpenVoting_SameAddressTwice_Reverts() public {
+        vm.prank(owner);
+        upvote.setOpenVoting(true);
+
+        vm.prank(alice);
+        upvote.upvote(1, address(0));
+
+        vm.prank(alice);
+        vm.expectRevert(Upvote.AlreadyVoted.selector);
+        upvote.upvote(1, address(0));
+    }
+
+    function test_OpenVoting_OnlyOwner_CanToggle() public {
+        vm.prank(alice);
+        vm.expectRevert();
+        upvote.setOpenVoting(true);
+    }
+
+    function test_OpenVoting_AndGatedVoting_ShareTheSameVoteLimit() public {
+        vm.prank(owner);
+        upvote.setOpenVoting(true);
+        vm.prank(owner);
+        upvote.allowCollection721(address(nft721));
+        nft721.mint(alice);
+
+        // Alice votes via open voting first...
+        vm.prank(alice);
+        upvote.upvote(1, address(0));
+
+        // ...then can't also vote on the same message via the NFT path.
+        vm.prank(alice);
+        vm.expectRevert(Upvote.AlreadyVoted.selector);
+        upvote.upvote(1, address(nft721));
+
+        assertEq(upvote.upvoteCount(1), 1);
+    }
+
+    function test_ConstructorCanEnableOpenVotingImmediately() public {
+        Upvote openByDefault = new Upvote(owner, true);
+
+        vm.prank(alice);
+        openByDefault.upvote(1, address(0));
+
+        assertEq(openByDefault.upvoteCount(1), 1);
     }
 
     function test_Enumeration_TracksEverAllowedRegardlessOfRemoval() public {

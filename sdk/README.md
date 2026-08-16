@@ -159,25 +159,36 @@ getProfilePicture(publicClient, who: Address, options?: { profileAddress?: Addre
 `hasPicture` first rather than just trying to resolve and getting back nothing, so a `null`
 here is unambiguous.
 
-### Upvote — NFT-gated voting
+### Upvote — voting, open or NFT-gated
 
 ```ts
 interface AllowedCollection { collection: Address; standard: "ERC721" | "ERC1155"; tokenId: bigint }
 ```
 
-Anyone holding a token from an owner-allowlisted NFT collection can upvote a message once.
-There's no fixed cap on how many collections can be allowlisted, and the check is a single
-`balanceOf` call — the voter names which allowlisted collection they're using, rather than the
-contract scanning the whole list.
+One vote per address per message, via either (or both, independently) of two paths the owner
+controls: **open voting** — no NFT required, when enabled — and **NFT-gated voting** — anyone
+holding a token from an owner-allowlisted collection can vote. There's no fixed cap on how many
+collections can be allowlisted, and the check is a single `balanceOf` call — the voter names
+which allowlisted collection they're using, rather than the contract scanning the whole list.
 
 ```ts
-upvote(publicClient, walletClient, messageId: bigint, collection: Address, options?: { upvoteAddress?: Address })
+upvote(publicClient, walletClient, messageId: bigint, collection?: Address, options?: { upvoteAddress?: Address })
   => Promise<Hex>
 ```
-Casts one vote for `messageId`, proving eligibility via `collection` (must be currently
-allowlisted, and the caller must hold a qualifying token from it). Throws
-`CollectionNotAllowedError`, `AlreadyVotedError`, or `NoBalanceError` as appropriate — one vote
-per address per message, not per NFT held.
+Casts one vote for `messageId`. Omit `collection` to vote via open voting (throws
+`OpenVotingDisabledError` if the owner hasn't turned it on). Pass a collection address to
+instead prove eligibility by holding a qualifying token from it — it must be currently
+allowlisted, and the caller must hold a token from it, or this throws `CollectionNotAllowedError`
+/ `NoBalanceError`. Either path throws `AlreadyVotedError` on a repeat vote — one vote per
+address per message, not per NFT held, and not per path (can't open-vote and NFT-vote the same
+message).
+
+```ts
+isOpenVotingEnabled(publicClient, options?: { upvoteAddress?: Address }) => Promise<boolean>
+setOpenVoting(publicClient, walletClient, enabled: boolean, options?: { upvoteAddress?: Address }) => Promise<Hex>
+```
+`setOpenVoting()` is owner-only. Independent of the collection allowlist — turning it off
+doesn't affect NFT-gated voting, and vice versa.
 
 ```ts
 getUpvoteCount(publicClient, messageId: bigint, options?: { upvoteAddress?: Address }) => Promise<bigint>
