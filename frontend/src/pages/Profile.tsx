@@ -1,4 +1,4 @@
-import { getProfile, getProfilePicture, setName as setNameOnChain, setPicture } from "@betrhood/sdk";
+import { getBio, getProfile, getProfilePicture, setBio as setBioOnChain, setName as setNameOnChain, setPicture } from "@betrhood/sdk";
 import { useEffect, useRef, useState } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
@@ -8,6 +8,7 @@ export function Profile() {
   const { data: walletClient } = useWalletClient();
 
   const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
@@ -21,9 +22,13 @@ export function Profile() {
     let cancelled = false;
 
     (async () => {
-      const profile = await getProfile(publicClient, address);
+      const [profile, bioText] = await Promise.all([
+        getProfile(publicClient, address),
+        getBio(publicClient, address),
+      ]);
       if (cancelled) return;
       setName(profile.name);
+      setBio(bioText);
 
       if (profile.hasPicture) {
         const bytes = await getProfilePicture(publicClient, address);
@@ -61,6 +66,9 @@ export function Profile() {
 
     try {
       await setNameOnChain(publicClient, walletClient, name);
+      if (bio.trim().length > 0) {
+        await setBioOnChain(publicClient, walletClient, bio);
+      }
       if (pendingFile) {
         const buffer = new Uint8Array(await pendingFile.arrayBuffer());
         await setPicture(publicClient, walletClient, buffer);
@@ -113,6 +121,17 @@ export function Profile() {
         maxLength={32}
         disabled={!loaded}
       />
+
+      <textarea
+        className="field field-textarea"
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+        placeholder="Bio — a couple sentences about you or what you're building"
+        maxLength={280}
+        rows={3}
+        disabled={!loaded}
+      />
+      <p className="hint">{bio.length}/280</p>
 
       <button className="btn btn-primary" onClick={handleSave} disabled={saving || !loaded}>
         {saving ? "Saving…" : "Save Profile"}

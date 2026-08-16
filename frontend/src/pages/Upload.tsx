@@ -1,8 +1,10 @@
-import { CHUNK_SIZE, upload } from "@betrhood/sdk";
+import { CHUNK_SIZE, postMessage, upload } from "@betrhood/sdk";
 import { useState } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 type Stage = "idle" | "uploading" | "done" | "error";
+
+const SHOWCASE_TOPIC = "showcase";
 
 export function Upload() {
   const { address, isConnected } = useAccount();
@@ -14,6 +16,8 @@ export function Upload() {
   const [error, setError] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [shareToShowcase, setShareToShowcase] = useState(false);
+  const [caption, setCaption] = useState("");
 
   const chunkEstimate = file ? Math.max(1, Math.ceil(file.size / CHUNK_SIZE)) : 0;
 
@@ -25,6 +29,12 @@ export function Upload() {
     try {
       const buffer = new Uint8Array(await file.arrayBuffer());
       await upload(publicClient, walletClient, file.name, buffer);
+
+      if (shareToShowcase) {
+        const body = JSON.stringify({ key: file.name, caption });
+        await postMessage(publicClient, walletClient, SHOWCASE_TOPIC, body);
+      }
+
       setLink(`betrhood.com/${address}/${file.name}`);
       setStage("done");
     } catch (err) {
@@ -81,9 +91,30 @@ export function Upload() {
       )}
 
       {file && stage !== "done" && (
-        <button className="btn btn-primary" onClick={handleUpload} disabled={stage === "uploading"}>
-          {stage === "uploading" ? "Uploading…" : "Upload"}
-        </button>
+        <>
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={shareToShowcase}
+              onChange={(e) => setShareToShowcase(e.target.checked)}
+            />
+            Share this in the homepage Showcase
+          </label>
+
+          {shareToShowcase && (
+            <input
+              className="field"
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              placeholder="Say something about it (optional)"
+              maxLength={200}
+            />
+          )}
+
+          <button className="btn btn-primary" onClick={handleUpload} disabled={stage === "uploading"}>
+            {stage === "uploading" ? "Uploading…" : "Upload"}
+          </button>
+        </>
       )}
 
       {stage === "error" && <p className="error">{error}</p>}

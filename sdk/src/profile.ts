@@ -10,6 +10,18 @@ const ProfileAbi = ProfileAbiJson as Abi;
  * so every integration that uses this SDK can find anyone's picture the same way. */
 const PICTURE_KEY = "betrhood:profile-picture";
 
+/** Same convention as PICTURE_KEY, but for bio text. Bio lives entirely in Storage — unlike
+ * the picture, there's no pointer on the Profile contract at all, since resolve() already
+ * returns empty bytes for "never written," which is all the signal we need. */
+const BIO_KEY = "betrhood:profile-bio";
+const MAX_BIO_LENGTH = 280;
+
+export class BioTooLongError extends Error {
+  constructor(length: number, max: number) {
+    super(`Bio is ${length} bytes, max is ${max}. Use a shorter bio.`);
+  }
+}
+
 /** Note: this only carries the name and whether a picture is set — resolving the actual
  * picture bytes is a separate call, `getProfilePicture()`, since it's a second contract read. */
 export interface Profile {
@@ -79,6 +91,32 @@ export async function setPicture(
   const profileTxHash = await walletClient.writeContract(request);
 
   return { uploadTxHash, profileTxHash };
+}
+
+export async function setBio(
+  publicClient: PublicClient,
+  walletClient: WalletClient,
+  bio: string,
+  options?: { storageAddress?: Address },
+): Promise<Hex> {
+  const bytes = new TextEncoder().encode(bio);
+  if (bytes.length > MAX_BIO_LENGTH) throw new BioTooLongError(bytes.length, MAX_BIO_LENGTH);
+
+  const { txHash } = await upload(publicClient, walletClient, BIO_KEY, bytes, {
+    storageAddress: options?.storageAddress,
+  });
+  return txHash;
+}
+
+/** Returns the empty string if no bio has ever been set — same "empty means unset" signal
+ * resolve() already gives for any never-written key. */
+export async function getBio(
+  publicClient: PublicClient,
+  who: Address,
+  options?: { storageAddress?: Address },
+): Promise<string> {
+  const bytes = await resolve(publicClient, who, BIO_KEY, { storageAddress: options?.storageAddress });
+  return bytes.length === 0 ? "" : new TextDecoder().decode(bytes);
 }
 
 export async function getProfile(

@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, defineChain, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { getProfile, getProfilePicture, setName, setPicture } from "../src/profile.js";
+import { getBio, getProfile, getProfilePicture, setBio, setName, setPicture } from "../src/profile.js";
 import { ANVIL_RPC, startChain, stopChain, TEST_PRIVATE_KEY, type TestAddresses } from "./setup.js";
 
 const anvilChain = defineChain({
@@ -74,5 +74,25 @@ describe("Profile", () => {
       storageAddress: addresses.storage,
     });
     expect(result).toBeNull();
+  });
+
+  it("getBio returns empty string when never set", async () => {
+    // Anvil default account #7, verified against anvil's own printed key list.
+    const fresh = privateKeyToAccount("0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356");
+    const bio = await getBio(publicClient, fresh.address, { storageAddress: addresses.storage });
+    expect(bio).toBe("");
+  });
+
+  it("setBio then getBio round-trips", async () => {
+    await setBio(publicClient, walletClient, "building onchain things.", { storageAddress: addresses.storage });
+    const bio = await getBio(publicClient, account.address, { storageAddress: addresses.storage });
+    expect(bio).toBe("building onchain things.");
+  });
+
+  it("rejects a bio over the max length before calling the chain", async () => {
+    const tooLong = "x".repeat(281);
+    await expect(
+      setBio(publicClient, walletClient, tooLong, { storageAddress: addresses.storage }),
+    ).rejects.toThrow(/281 bytes, max is 280/);
   });
 });

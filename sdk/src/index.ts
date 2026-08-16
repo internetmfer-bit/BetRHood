@@ -19,8 +19,11 @@ export {
 export {
   setName,
   setPicture,
+  setBio,
   getProfile,
   getProfilePicture,
+  getBio,
   NameTooLongError,
+  BioTooLongError,
   type Profile,
 } from "./profile.js";

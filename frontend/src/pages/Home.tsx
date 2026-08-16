@@ -1,20 +1,22 @@
-import { getMessage, getMessageCount, getProfile, getProfilePicture, type Message } from "@betrhood/sdk";
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { getMessage, getMessageCount, getMessagesByTopic, getProfile, getProfilePicture, postMessage, type Message } from "@betrhood/sdk";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { type Address } from "viem";
-import { usePublicClient } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
-const RECENT_LIMIT = 12;
+const RECENT_LIMIT = 30;
 const ACTIVE_PROFILES_LIMIT = 6;
+const SHOWCASE_TOPIC = "showcase";
+const SHOWCASE_LIMIT = 6;
 
 function truncate(address: string): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
-function bodyPreview(bytes: Uint8Array): string {
+function bodyPreview(bytes: Uint8Array, max = 100): string {
   try {
     const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-    return text.length > 100 ? `${text.slice(0, 100)}…` : text;
+    return text.length > max ? `${text.slice(0, max)}…` : text;
   } catch {
     return `${bytes.length} bytes (binary)`;
   }
@@ -36,13 +38,45 @@ interface ActiveProfile {
   pictureUrl: string | null;
 }
 
+interface TopicGroup {
+  topic: string;
+  count: number;
+  latest: Message;
+}
+
+interface ShowcaseItem {
+  sender: Address;
+  key: string;
+  caption: string;
+  timestamp: bigint;
+}
+
+function parseShowcaseBody(bytes: Uint8Array): { key: string; caption: string } | null {
+  try {
+    const parsed = JSON.parse(new TextDecoder().decode(bytes));
+    if (typeof parsed.key === "string") return { key: parsed.key, caption: String(parsed.caption ?? "") };
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function Home() {
   const publicClient = usePublicClient();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { data: walletClient } = useWalletClient();
+  const { isConnected } = useAccount();
+  const navigate = useNavigate();
+
+  const [topics, setTopics] = useState<TopicGroup[]>([]);
   const [profiles, setProfiles] = useState<ActiveProfile[]>([]);
+  const [showcase, setShowcase] = useState<ShowcaseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const pictureUrls = useRef<string[]>([]);
+
+  const [newTopic, setNewTopic] = useState("");
+  const [newBody, setNewBody] = useState("");
+  const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     if (!publicClient) return;
@@ -53,24 +87,28 @@ export function Home() {
     (async () => {
       try {
         const total = Number(await getMessageCount(publicClient));
-        if (total === 0) {
-          if (!cancelled) {
-            setMessages([]);
-            setProfiles([]);
-            setLoading(false);
-          }
-          return;
+        const recentMessages: Message[] = [];
+        if (total > 0) {
+          const start = Math.max(0, total - RECENT_LIMIT);
+          const ids = Array.from({ length: total - start }, (_, i) => BigInt(total - 1 - i));
+          recentMessages.push(...(await Promise.all(ids.map((id) => getMessage(publicClient, id)))));
         }
-
-        const start = Math.max(0, total - RECENT_LIMIT);
-        const ids = Array.from({ length: total - start }, (_, i) => BigInt(total - 1 - i));
-        const results = await Promise.all(ids.map((id) => getMessage(publicClient, id)));
         if (cancelled) return;
-        setMessages(results);
-        setLoading(false);
 
-        // "Recently active" — real senders from real recent activity, not a fake list.
-        const uniqueSenders = [...new Set(results.map((m) => m.sender))].slice(0, ACTIVE_PROFILES_LIMIT);
+        // Group into topics — a real forum board list, derived from real recent activity.
+        const groups = new Map<string, TopicGroup>();
+        for (const m of recentMessages) {
+          const key = m.topic;
+          const existing = groups.get(key);
+          if (existing) {
+            existing.count += 1;
+          } else {
+            groups.set(key, { topic: key, count: 1, latest: m });
+          }
+        }
+        setTopics([...groups.values()]);
+
+        const uniqueSenders = [...new Set(recentMessages.map((m) => m.sender))].slice(0, ACTIVE_PROFILES_LIMIT);
         const profileResults = await Promise.all(
           uniqueSenders.map(async (address): Promise<ActiveProfile> => {
             const profile = await getProfile(publicClient, address);
@@ -86,6 +124,19 @@ export function Home() {
           }),
         );
         if (!cancelled) setProfiles(profileResults);
+
+        const showcaseMessages = await getMessagesByTopic(publicClient, SHOWCASE_TOPIC);
+        const items = showcaseMessages
+          .slice(-SHOWCASE_LIMIT)
+          .reverse()
+          .map((m): ShowcaseItem | null => {
+            const parsed = parseShowcaseBody(m.body);
+            return parsed ? { sender: m.sender, key: parsed.key, caption: parsed.caption, timestamp: m.timestamp } : null;
+          })
+          .filter((x): x is ShowcaseItem => x !== null);
+        if (!cancelled) setShowcase(items);
+
+        setLoading(false);
       } catch (err) {
         if (!cancelled) {
           setError((err as Error).message);
@@ -101,6 +152,20 @@ export function Home() {
     };
   }, [publicClient]);
 
+  const handleStartTopic = useCallback(async () => {
+    if (!publicClient || !walletClient || !newTopic.trim() || !newBody.trim()) return;
+    setPosting(true);
+    setError(null);
+    try {
+      await postMessage(publicClient, walletClient, newTopic.trim(), newBody.trim());
+      navigate(`/topic/${encodeURIComponent(newTopic.trim())}`);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setPosting(false);
+    }
+  }, [publicClient, walletClient, newTopic, newBody, navigate]);
+
   return (
     <div className="main-wide">
       <div className="hero">
@@ -108,7 +173,7 @@ export function Home() {
           BET<span>RH</span>OOD
         </h1>
         <p className="hero-tagline">
-          Upload a file, get a permanent link. Post a message, get it back by topic. No accounts —
+          Upload a file, get a permanent link. Post to a topic, get an onchain forum. No accounts —
           your wallet is the account, the chain is the only server there is.
         </p>
         <Link to="/upload" className="btn btn-primary">
@@ -127,7 +192,7 @@ export function Home() {
           </Link>
           <Link to="/profile" className="app-card">
             <p className="app-card-title">Profile</p>
-            <p className="app-card-desc">Set a display name and picture for your address.</p>
+            <p className="app-card-desc">Set a display name, bio, and picture for your address.</p>
           </Link>
           <a href="https://github.com/internetmfer-bit/BetRHood" className="app-card" target="_blank" rel="noreferrer">
             <p className="app-card-title">SDK &amp; Docs</p>
@@ -143,14 +208,14 @@ export function Home() {
           </div>
           <div className="profile-row">
             {profiles.map((p) => (
-              <div className="profile-card" key={p.address}>
+              <Link to={`/u/${p.address}`} className="profile-card" key={p.address}>
                 {p.pictureUrl ? (
                   <img src={p.pictureUrl} alt="" className="profile-avatar" />
                 ) : (
                   <span className="profile-avatar profile-avatar-empty" />
                 )}
                 <div className="profile-name">{p.name || truncate(p.address)}</div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -158,25 +223,73 @@ export function Home() {
 
       <div className="section">
         <div className="section-head">
-          <h2 className="section-title">Recent Activity</h2>
+          <h2 className="section-title">Showcase</h2>
+          <span className="section-note">things people have made</span>
+        </div>
+        {showcase.length === 0 ? (
+          <p className="hint">Nothing shared yet — upload something and share it.</p>
+        ) : (
+          <div className="apps-grid">
+            {showcase.map((item, i) => (
+              <Link to={`/view/${item.sender}/${encodeURIComponent(item.key)}`} className="app-card" key={i}>
+                <p className="app-card-title">{item.key}</p>
+                <p className="app-card-desc">{item.caption || "—"}</p>
+                <p className="section-note">by {truncate(item.sender)}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="section">
+        <div className="section-head">
+          <h2 className="section-title">Forum</h2>
           <span className="section-note">Trending / Popular sorting coming soon</span>
         </div>
 
         {loading && <p className="hint">Loading…</p>}
         {error && <p className="error">{error}</p>}
-        {!loading && !error && messages.length === 0 && <p className="hint">Nothing posted yet — be the first.</p>}
+        {!loading && !error && topics.length === 0 && <p className="hint">No topics yet — start one below.</p>}
 
         <div className="thread-list">
-          {messages.map((m, i) => (
-            <div className="thread" key={i}>
-              <div className="thread-topic">{hexTopicToText(m.topic)}</div>
-              <div className="thread-meta">{new Date(Number(m.timestamp) * 1000).toLocaleDateString()}</div>
-              <div className="thread-body">
-                {truncate(m.sender)} — {bodyPreview(m.body)}
+          {topics.map((t) => (
+            <Link to={`/topic/${encodeURIComponent(hexTopicToText(t.topic))}`} className="thread" key={t.topic}>
+              <div className="thread-topic">{hexTopicToText(t.topic)}</div>
+              <div className="thread-meta">
+                {t.count} recent · {new Date(Number(t.latest.timestamp) * 1000).toLocaleDateString()}
               </div>
-            </div>
+              <div className="thread-body">{bodyPreview(t.latest.body)}</div>
+            </Link>
           ))}
         </div>
+
+        {isConnected ? (
+          <div className="reply-box">
+            <input
+              className="field"
+              value={newTopic}
+              onChange={(e) => setNewTopic(e.target.value)}
+              placeholder="New topic name"
+              maxLength={32}
+            />
+            <textarea
+              className="field field-textarea"
+              value={newBody}
+              onChange={(e) => setNewBody(e.target.value)}
+              placeholder="First post"
+              rows={3}
+            />
+            <button
+              className="btn btn-primary"
+              onClick={handleStartTopic}
+              disabled={posting || !newTopic.trim() || !newBody.trim()}
+            >
+              {posting ? "Posting…" : "Start Topic"}
+            </button>
+          </div>
+        ) : (
+          <p className="hint">Connect a wallet to start a topic.</p>
+        )}
       </div>
     </div>
   );

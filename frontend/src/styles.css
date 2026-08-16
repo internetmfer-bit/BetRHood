@@ -190,6 +190,18 @@ a { color: var(--matrix); }
   color: var(--text);
 }
 .field:focus { outline: none; border-color: var(--matrix); }
+.field-textarea { max-width: 100%; resize: vertical; font-family: var(--font-body); font-size: 0.95rem; }
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.checkbox-row input { accent-color: var(--lime); }
 
 .avatar-picker { align-self: flex-start; cursor: pointer; }
 .avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; display: block; border: 1px solid var(--line); }
@@ -287,6 +299,16 @@ a { color: var(--matrix); }
 }
 .profile-avatar-empty { background: var(--black-raised-2); }
 .profile-name { font-family: var(--font-mono); font-size: 0.95rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.post { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.post-meta { font-family: var(--font-mono); font-size: 0.92rem; color: var(--text-faint); }
+.post-meta a { color: var(--matrix); text-decoration: none; }
+.post-meta a:hover { text-decoration: underline; }
+.post-body { color: var(--text); font-size: 0.95rem; margin-top: 4px; white-space: pre-wrap; word-break: break-word; }
+
+.reply-box { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+.profile-bio { color: var(--text-soft); font-size: 0.95rem; max-width: 46ch; }
 
 .tabs { display: flex; gap: 16px; }
 .tab { font-family: var(--font-mono); font-size: 1rem; border: none; background: none; color: var(--text-faint); cursor: pointer; padding: 4px 0; }
