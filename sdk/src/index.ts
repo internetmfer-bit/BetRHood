@@ -27,3 +27,18 @@ export {
   BioTooLongError,
   type Profile,
 } from "./profile.js";
+
+export {
+  upvote,
+  getUpvoteCount,
+  hasVoted,
+  getAllowedCollections,
+  allowCollection721,
+  allowCollection1155,
+  removeCollection,
+  CollectionNotAllowedError,
+  AlreadyVotedError,
+  NoBalanceError,
+  type CollectionStandard,
+  type AllowedCollection,
+} from "./upvote.js";

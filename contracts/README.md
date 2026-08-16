@@ -13,6 +13,10 @@ Onchain storage and messaging on Robinhood Chain. Two primitives:
   `topic` and `body`, not separate systems.
 - **`Profile.sol`** — optional display name + picture per address. The picture's bytes live
   in `Storage` under the same address; this contract just remembers which key to look at.
+- **`Upvote.sol`** — one upvote per address per message, gated behind holding a token from an
+  owner-allowlisted ERC-721 or ERC-1155 collection. The allowlist is unbounded; the voter names
+  which allowlisted collection they're voting with, so eligibility is one `balanceOf` call
+  rather than a scan over every allowlisted collection.
 
 No contract here does deletion. Nothing is pinned or garbage-collected — the chain itself is
 the persistence layer.

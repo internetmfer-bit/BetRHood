@@ -3,24 +3,7 @@ pragma solidity ^0.8.28;
 
 import {Test} from "forge-std/Test.sol";
 import {Upvote} from "../src/Upvote.sol";
-
-/// @dev Minimal fake ERC721 — only the `balanceOf` surface Upvote actually calls.
-contract MockERC721 {
-    mapping(address => uint256) public balanceOf;
-
-    function mint(address to) external {
-        balanceOf[to] += 1;
-    }
-}
-
-/// @dev Minimal fake ERC1155 — only the `balanceOf(address,uint256)` surface Upvote calls.
-contract MockERC1155 {
-    mapping(address => mapping(uint256 => uint256)) public balanceOf;
-
-    function mint(address to, uint256 id) external {
-        balanceOf[to][id] += 1;
-    }
-}
+import {MockERC721, MockERC1155} from "./mocks/MockTokens.sol";
 
 contract UpvoteTest is Test {
     Upvote internal upvote;

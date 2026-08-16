@@ -15,6 +15,9 @@ export interface TestAddresses {
   storage: `0x${string}`;
   messaging: `0x${string}`;
   profile: `0x${string}`;
+  upvote: `0x${string}`;
+  mockerc721: `0x${string}`;
+  mockerc1155: `0x${string}`;
 }
 
 let anvil: ChildProcess | undefined;
@@ -35,24 +38,27 @@ async function doStart(): Promise<TestAddresses> {
   anvil = spawn("anvil", ["--port", String(ANVIL_PORT), "--silent"], { stdio: "ignore" });
   await waitForAnvil();
 
-  // Deploy.s.sol reads PRIVATE_KEY via vm.envUint(), so it must be a real env var here —
-  // a --private-key CLI flag alone wouldn't satisfy that call.
-  execSync(`forge script script/Deploy.s.sol --rpc-url ${ANVIL_RPC} --broadcast`, {
-    cwd: CONTRACTS_DIR,
-    stdio: "pipe",
-    env: { ...process.env, PRIVATE_KEY: TEST_PRIVATE_KEY },
-  });
+  // Each script reads PRIVATE_KEY via vm.envUint(), so it must be a real env var here — a
+  // --private-key CLI flag alone wouldn't satisfy that call.
+  const env = { ...process.env, PRIVATE_KEY: TEST_PRIVATE_KEY };
+  for (const script of ["Deploy.s.sol", "DeployUpvote.s.sol", "DeployTestFixtures.s.sol"]) {
+    execSync(`forge script script/${script} --rpc-url ${ANVIL_RPC} --broadcast`, {
+      cwd: CONTRACTS_DIR,
+      stdio: "pipe",
+      env,
+    });
+  }
 
-  const broadcastPath = path.join(CONTRACTS_DIR, "broadcast/Deploy.s.sol/31337/run-latest.json");
-  const broadcast = JSON.parse(readFileSync(broadcastPath, "utf-8"));
+  const addresses: Record<string, `0x${string}`> = {};
+  for (const script of ["Deploy.s.sol", "DeployUpvote.s.sol", "DeployTestFixtures.s.sol"]) {
+    const broadcastPath = path.join(CONTRACTS_DIR, `broadcast/${script}/31337/run-latest.json`);
+    const broadcast = JSON.parse(readFileSync(broadcastPath, "utf-8"));
+    for (const tx of broadcast.transactions) {
+      if (tx.transactionType === "CREATE") addresses[tx.contractName.toLowerCase()] = tx.contractAddress;
+    }
+  }
 
-  const addresses = Object.fromEntries(
-    broadcast.transactions
-      .filter((tx: any) => tx.transactionType === "CREATE")
-      .map((tx: any) => [tx.contractName.toLowerCase(), tx.contractAddress]),
-  ) as unknown as TestAddresses;
-
-  return addresses;
+  return addresses as unknown as TestAddresses;
 }
 
 export function stopChain() {
