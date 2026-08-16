@@ -7,6 +7,7 @@ import { Home } from "./pages/Home.js";
 import { Profile } from "./pages/Profile.js";
 import { ProfileView } from "./pages/ProfileView.js";
 import { Topic } from "./pages/Topic.js";
+import { Trending } from "./pages/Trending.js";
 import { Upload } from "./pages/Upload.js";
 import { Viewer } from "./pages/Viewer.js";
 
@@ -22,6 +23,7 @@ export default function App() {
         <nav className="nav-links">
           <Link to="/profile">Profile</Link>
           <Link to="/upload">Upload</Link>
+          <Link to="/trending">Tokens</Link>
           <Link to="/agents">For Agents</Link>
         </nav>
         <ConnectButton />
@@ -35,6 +37,7 @@ export default function App() {
           <Route path="/upload" element={<Upload />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/agents" element={<Agents />} />
+          <Route path="/trending" element={<Trending />} />
           <Route path="/u/:address" element={<ProfileView />} />
           <Route path="/topic/:topic" element={<Topic />} />
           <Route path="/view/:address/:key" element={<Viewer />} />

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseTrendingPools } from "../src/trending.js";
+import { dedupeBySymbol, parseTrendingPools, type TrendingToken } from "../src/trending.js";
 
 // Trimmed from a real GeckoTerminal /networks/robinhood/trending_pools response captured
 // 2026-08-16 — real field names and real shape, not guessed.
@@ -73,5 +73,28 @@ describe("parseTrendingPools", () => {
     });
     expect(result[0].change24h).toBe(0);
     expect(result[0].volumeUsd24h).toBe(0);
+  });
+});
+
+function token(symbol: string, volumeUsd24h: number): TrendingToken {
+  return { symbol, priceUsd: 1, change24h: 0, volumeUsd24h, dex: "test-dex" };
+}
+
+describe("dedupeBySymbol", () => {
+  it("keeps the first occurrence of a repeated symbol, dropping the rest", () => {
+    const result = dedupeBySymbol([token("FOO", 100), token("BAR", 50), token("FOO", 10)]);
+    expect(result).toHaveLength(2);
+    expect(result.map((t) => t.symbol)).toEqual(["FOO", "BAR"]);
+    // The kept FOO is the first (higher-volume, since callers pass already-sorted input).
+    expect(result[0].volumeUsd24h).toBe(100);
+  });
+
+  it("passes through a list with no duplicates unchanged", () => {
+    const input = [token("FOO", 100), token("BAR", 50)];
+    expect(dedupeBySymbol(input)).toEqual(input);
+  });
+
+  it("returns an empty array for empty input", () => {
+    expect(dedupeBySymbol([])).toEqual([]);
   });
 });

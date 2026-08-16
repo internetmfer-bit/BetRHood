@@ -33,9 +33,12 @@ a { color: var(--matrix); }
 /* ---------- Trending ticker ---------- */
 
 .ticker {
+  display: block;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
   background: var(--black-raised);
+  text-decoration: none;
+  cursor: pointer;
 }
 .ticker-track {
   display: inline-flex;
@@ -64,6 +67,14 @@ a { color: var(--matrix); }
 .ticker-price { color: var(--text-soft); }
 .ticker-change-up { color: var(--matrix); }
 .ticker-change-down { color: var(--error); }
+
+.trending-search { max-width: 320px; margin-bottom: 16px; }
+.trending-table-wrap { overflow-x: auto; }
+.trending-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.95rem; }
+.trending-table td, .trending-table th { border-bottom: 1px solid var(--line); padding: 9px 12px; text-align: left; white-space: nowrap; }
+.trending-table th { color: var(--text-faint); font-weight: normal; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.8rem; }
+.trending-symbol { color: var(--lime); }
+.trending-dex { color: var(--text-faint); text-transform: capitalize; }
 
 /* ---------- Nav ---------- */
 
