@@ -202,6 +202,10 @@ export function Home() {
             <p className="app-card-title">SDK &amp; Docs</p>
             <p className="app-card-desc">Build your own integration on the same contracts.</p>
           </a>
+          <Link to="/agents" className="app-card">
+            <p className="app-card-title">For Agents</p>
+            <p className="app-card-desc">Contract addresses, RPC, and code — everything an AI agent needs, no browser required.</p>
+          </Link>
         </div>
       </div>
 

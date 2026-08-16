@@ -342,4 +342,42 @@ a { color: var(--matrix); }
 .tabs { display: flex; gap: 16px; }
 .tab { font-family: var(--font-mono); font-size: 1rem; border: none; background: none; color: var(--text-faint); cursor: pointer; padding: 4px 0; }
 .tab-active { color: var(--lime); border-bottom: 2px solid var(--lime); }
+
+/* ---------- Agents page ---------- */
+
+.agents-page { padding-bottom: 48px; }
+.agents-intro h1 { font-family: var(--font-display); font-size: 1.2rem; color: var(--lime); margin: 0 0 10px; }
+.agents-section { padding-top: 28px; }
+.agents-section h2 {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--matrix);
+  margin: 0 0 12px;
+}
+.agents-section p { color: var(--text-soft); font-size: 0.95rem; line-height: 1.6; }
+.agents-section code { font-family: var(--font-mono); color: var(--text); background: var(--black-raised-2); padding: 1px 5px; border-radius: 4px; }
+.agents-section a { color: var(--matrix); }
+
+.agents-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.92rem; }
+.agents-table td, .agents-table th { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.agents-table th { color: var(--text-faint); font-weight: normal; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.82rem; }
+.agents-table td:first-child { color: var(--lime); white-space: nowrap; }
+.agents-table a { word-break: break-all; }
+.agents-table-contracts td:last-child { color: var(--text-soft); font-family: var(--font-body, inherit); }
+
+.agents-list { color: var(--text-soft); font-size: 0.95rem; line-height: 1.7; padding-left: 20px; margin: 0; }
+.agents-list li { margin-bottom: 6px; }
+
+.code-block {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--black-raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.5;
+}
 .tab-disabled { cursor: not-allowed; }

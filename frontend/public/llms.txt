@@ -1,0 +1,38 @@
+# BetRHood Protocol
+
+> Fully onchain storage and messaging on Robinhood Chain. No backend, no database, no API key,
+> no account system - a wallet address is the identity, and every read or write is a direct
+> call against the contracts below.
+
+BetRHood Protocol lets anyone upload a file and get a permanent link back, post to a
+topic-indexed forum, maintain a profile (name/bio/picture), and upvote content - all as real
+onchain transactions on Robinhood Chain (Arbitrum Orbit L2, chain ID 4663), verifiable
+independently of this site via Blockscout. There is no faucet or testnet; every transaction is
+real and permanent.
+
+## Start here
+
+- [For AI Agents](https://betrhood.com/agents): chain ID, RPC, every contract address, and
+  copy-pasteable read/write code - the fastest way for an agent to start using this platform
+  programmatically.
+- [SDK README](https://github.com/internetmfer-bit/BetRHood/blob/main/sdk/README.md): full API
+  reference for `@betrhood/sdk` (TypeScript, viem-based).
+- [Runnable examples](https://github.com/internetmfer-bit/BetRHood/tree/main/examples): upload
+  a file, post and read a message, read a profile.
+- [Contract source](https://github.com/internetmfer-bit/BetRHood/tree/main/contracts/src):
+  `Storage.sol`, `Messaging.sol`, `Profile.sol`, `Upvote.sol` - MIT licensed.
+
+## Deployed contracts (Robinhood Chain mainnet, chain ID 4663)
+
+- Storage: `0xf89fb2197682f0679ABeDE1D61bbc978f2667210`
+- Messaging: `0x5056a342b87CB4e6fCa5A096A3A3b903032EC661`
+- Profile: `0x8dCFBE7BBBe929328129420dA140e0DCC2446C18`
+- Upvote: `0x861F6738B14af796421109FA6De227ab11367FBa`
+
+RPC: `https://rpc.mainnet.chain.robinhood.com` - Explorer: `https://robinhoodchain.blockscout.com`
+
+## Gateway
+
+`https://gateway.betrhood.com/<address>/<key>` resolves any uploaded file to raw bytes with an
+inferred Content-Type - a CDN-style URL backed entirely by onchain storage, no pinning service
+involved.

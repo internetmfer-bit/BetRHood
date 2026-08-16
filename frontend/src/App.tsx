@@ -1,5 +1,6 @@
 import { Link, Route, Routes } from "react-router-dom";
 import { ConnectButton } from "./components/ConnectButton.js";
+import { Agents } from "./pages/Agents.js";
 import { Home } from "./pages/Home.js";
 import { Profile } from "./pages/Profile.js";
 import { ProfileView } from "./pages/ProfileView.js";
@@ -17,6 +18,7 @@ export default function App() {
         <nav className="nav-links">
           <Link to="/upload">Upload</Link>
           <Link to="/profile">Profile</Link>
+          <Link to="/agents">For Agents</Link>
         </nav>
         <ConnectButton />
       </header>
@@ -26,6 +28,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/agents" element={<Agents />} />
           <Route path="/u/:address" element={<ProfileView />} />
           <Route path="/topic/:topic" element={<Topic />} />
           <Route path="/view/:address/:key" element={<Viewer />} />
