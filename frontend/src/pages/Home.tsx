@@ -190,13 +190,13 @@ export function Home() {
           <h2 className="section-title">Build on BetRHood</h2>
         </div>
         <div className="apps-grid">
-          <Link to="/upload" className="app-card">
-            <p className="app-card-title">Upload</p>
-            <p className="app-card-desc">Store a file onchain, get a permanent link back.</p>
-          </Link>
           <Link to="/profile" className="app-card">
             <p className="app-card-title">Profile</p>
             <p className="app-card-desc">Set a display name, bio, and picture for your address.</p>
+          </Link>
+          <Link to="/upload" className="app-card">
+            <p className="app-card-title">Upload</p>
+            <p className="app-card-desc">Store a file onchain, get a permanent link back.</p>
           </Link>
           <a href="https://github.com/internetmfer-bit/BetRHood" className="app-card" target="_blank" rel="noreferrer">
             <p className="app-card-title">SDK &amp; Docs</p>
