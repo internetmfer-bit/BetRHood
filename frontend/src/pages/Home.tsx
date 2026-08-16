@@ -4,10 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { type Address } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { UpvoteButton } from "../components/UpvoteButton";
+import { isReservedTopic, SHOWCASE_TOPIC } from "../topics";
 
 const RECENT_LIMIT = 30;
 const ACTIVE_PROFILES_LIMIT = 6;
-const SHOWCASE_TOPIC = "showcase";
 const SHOWCASE_LIMIT = 6;
 
 function truncate(address: string): string {
@@ -99,8 +99,11 @@ export function Home() {
         if (cancelled) return;
 
         // Group into topics — a real forum board list, derived from real recent activity.
+        // Reserved topics (uploads, showcase) are internal bookkeeping, not public discussion —
+        // excluded here so they never show up as a browsable/postable "topic".
         const groups = new Map<string, TopicGroup>();
         for (const m of recentMessages) {
+          if (isReservedTopic(m.topic)) continue;
           const key = m.topic;
           const existing = groups.get(key);
           if (existing) {

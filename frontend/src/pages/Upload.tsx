@@ -1,15 +1,9 @@
 import { CHUNK_SIZE, getMessagesBySender, postMessage, upload } from "@betrhood/sdk";
 import { useCallback, useEffect, useState } from "react";
-import { stringToHex } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { SHOWCASE_TOPIC, UPLOADS_TOPIC, UPLOADS_TOPIC_HEX } from "../topics";
 
 type Stage = "idle" | "uploading" | "done" | "error";
-
-const SHOWCASE_TOPIC = "showcase";
-const UPLOADS_TOPIC = "uploads";
-// Message.topic comes back as the same bytes32 encoding postMessage() sends — compare against
-// this, not the raw string, to actually filter by topic.
-const UPLOADS_TOPIC_HEX = stringToHex(UPLOADS_TOPIC, { size: 32 });
 
 interface UploadRecord {
   key: string;

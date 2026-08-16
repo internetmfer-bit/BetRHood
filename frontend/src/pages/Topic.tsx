@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import type { Address } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { UpvoteButton } from "../components/UpvoteButton";
+import { isReservedTopic } from "../topics";
 
 function truncate(address: string): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -79,6 +80,18 @@ export function Topic() {
   }
 
   if (!topic) return null;
+
+  if (isReservedTopic(topic)) {
+    return (
+      <div className="panel">
+        <h1>{topic}</h1>
+        <p className="hint">
+          This topic is used internally by BetRHood for bookkeeping — it isn't part of the
+          public forum.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="panel">
