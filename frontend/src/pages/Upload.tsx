@@ -1,4 +1,4 @@
-import { CHUNK_SIZE, getMessagesBySender, postMessage, upload } from "@betrhood/sdk";
+import { CHUNK_SIZE, getMessagesBySender, postMessage, resolve, upload } from "@betrhood/sdk";
 import { useCallback, useEffect, useState } from "react";
 import { stringToHex } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
@@ -42,6 +42,10 @@ export function Upload() {
   const [caption, setCaption] = useState("");
   const [history, setHistory] = useState<UploadRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [trackKey, setTrackKey] = useState("");
+  const [tracking, setTracking] = useState(false);
+  const [trackError, setTrackError] = useState<string | null>(null);
 
   const chunkEstimate = file ? Math.max(1, Math.ceil(file.size / CHUNK_SIZE)) : 0;
   const previewLink = address && key.trim() ? `gateway.betrhood.com/${address}/${encodeURIComponent(key.trim())}` : null;
@@ -49,17 +53,23 @@ export function Upload() {
   const loadHistory = useCallback(async () => {
     if (!publicClient || !address) return;
     setHistoryLoading(true);
-    const messages = await getMessagesBySender(publicClient, address);
-    const records = messages
-      .filter((m) => m.topic === UPLOADS_TOPIC_HEX)
-      .map((m): UploadRecord | null => {
-        const parsed = parseUploadRecord(m.body);
-        return parsed ? { ...parsed, timestamp: m.timestamp } : null;
-      })
-      .filter((r): r is UploadRecord => r !== null)
-      .sort((a, b) => Number(b.timestamp - a.timestamp));
-    setHistory(records);
-    setHistoryLoading(false);
+    setHistoryError(null);
+    try {
+      const messages = await getMessagesBySender(publicClient, address);
+      const records = messages
+        .filter((m) => m.topic === UPLOADS_TOPIC_HEX)
+        .map((m): UploadRecord | null => {
+          const parsed = parseUploadRecord(m.body);
+          return parsed ? { ...parsed, timestamp: m.timestamp } : null;
+        })
+        .filter((r): r is UploadRecord => r !== null)
+        .sort((a, b) => Number(b.timestamp - a.timestamp));
+      setHistory(records);
+    } catch (err) {
+      setHistoryError((err as Error).message);
+    } finally {
+      setHistoryLoading(false);
+    }
   }, [publicClient, address]);
 
   useEffect(() => {
@@ -97,6 +107,32 @@ export function Upload() {
     } catch (err) {
       setError((err as Error).message);
       setStage("error");
+    }
+  }
+
+  // For uploads made before the history feature existed (or if the record-message half of a
+  // normal upload failed) — the file's already safely stored, this just posts the missing
+  // record for it. One signature, no re-upload, no re-payment for storage.
+  async function handleTrack() {
+    const trimmedKey = trackKey.trim();
+    if (!trimmedKey || !publicClient || !walletClient || !address) return;
+    setTracking(true);
+    setTrackError(null);
+
+    try {
+      const bytes = await resolve(publicClient, address, trimmedKey);
+      if (bytes.length === 0) {
+        setTrackError(`Nothing found at key "${trimmedKey}" for this address.`);
+        return;
+      }
+      const record = JSON.stringify({ key: trimmedKey, size: bytes.length });
+      await postMessage(publicClient, walletClient, UPLOADS_TOPIC, record);
+      setTrackKey("");
+      await loadHistory();
+    } catch (err) {
+      setTrackError((err as Error).message);
+    } finally {
+      setTracking(false);
     }
   }
 
@@ -204,11 +240,33 @@ export function Upload() {
 
       <div className="upload-history">
         <h2 className="upload-history-title">Your Uploads</h2>
+
+        <div className="track-row">
+          <input
+            className="field"
+            value={trackKey}
+            onChange={(e) => setTrackKey(e.target.value)}
+            placeholder="Already uploaded something? Enter its key to track it"
+          />
+          <button className="btn" onClick={handleTrack} disabled={tracking || !trackKey.trim()}>
+            {tracking ? "Checking…" : "Track it"}
+          </button>
+        </div>
+        {trackError && <p className="error">{trackError}</p>}
+
         {historyLoading && <p className="hint">Loading…</p>}
-        {!historyLoading && history.length === 0 && (
+        {!historyLoading && historyError && (
+          <p className="error">
+            Couldn't load your uploads: {historyError}{" "}
+            <button className="btn-copy" onClick={loadHistory}>
+              retry
+            </button>
+          </p>
+        )}
+        {!historyLoading && !historyError && history.length === 0 && (
           <p className="hint">Nothing uploaded yet from this address.</p>
         )}
-        {!historyLoading && history.length > 0 && (
+        {!historyLoading && !historyError && history.length > 0 && (
           <div className="thread-list">
             {history.map((record, i) => (
               <a
