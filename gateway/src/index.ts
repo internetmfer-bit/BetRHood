@@ -2,6 +2,7 @@ import { type Address, type Transport, createPublicClient, fallback, http } from
 import { addresses, resolve, robinhoodChain } from "@betrhood/sdk";
 import { contentTypeForBytes, contentTypeForKey } from "./contentType.js";
 import { InvalidLinkError, parseLink } from "./parseLink.js";
+import { fetchTrendingPools } from "./trending.js";
 
 export interface Env {
   /** Public endpoint, no API key — safe to commit as a plain var. Free but shared/rate-limited,
@@ -53,6 +54,40 @@ export default {
 
     if (url.pathname === "/" || url.pathname === "") {
       return textResponse("BetRHood Protocol gateway. Try /<address>/<key>.", 200);
+    }
+
+    // GeckoTerminal's free API rate-limits aggressively — proxying through here with a short
+    // cache means every visitor shares one upstream fetch every ~60s, instead of each browser
+    // hitting GeckoTerminal directly and getting throttled under any real traffic.
+    if (url.pathname === "/trending") {
+      const cache = typeof caches !== "undefined" ? caches.default : undefined;
+      const cacheKey = new Request(url.toString(), request);
+      if (cache) {
+        const cached = await cache.match(cacheKey);
+        if (cached) return cached;
+      }
+
+      let tokens: Awaited<ReturnType<typeof fetchTrendingPools>>;
+      try {
+        tokens = await fetchTrendingPools();
+      } catch (err) {
+        return textResponse(`Trending data unavailable: ${(err as Error).message}`, 502);
+      }
+
+      const response = new Response(JSON.stringify(tokens), {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "cache-control": `public, max-age=${CACHE_TTL_SECONDS}`,
+          ...CORS_HEADERS,
+        },
+      });
+
+      if (cache) {
+        ctx.waitUntil(cache.put(cacheKey, response.clone()));
+      }
+
+      return response;
     }
 
     let parsed: { owner: Address; key: string };
