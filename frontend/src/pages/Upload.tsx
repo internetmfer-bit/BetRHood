@@ -35,7 +35,7 @@ export function Upload() {
         await postMessage(publicClient, walletClient, SHOWCASE_TOPIC, body);
       }
 
-      setLink(`cdn.betrhood.com/${address}/${file.name}`);
+      setLink(`betrhood.com/${address}/${file.name}`);
       setStage("done");
     } catch (err) {
       setError((err as Error).message);

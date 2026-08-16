@@ -69,7 +69,7 @@ export function Viewer() {
     );
   }
 
-  const gatewayLink = `cdn.betrhood.com/${address}/${key}`;
+  const gatewayLink = `betrhood.com/${address}/${key}`;
 
   return (
     <div className="panel">
