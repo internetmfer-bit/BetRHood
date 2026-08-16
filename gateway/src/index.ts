@@ -83,7 +83,10 @@ export default {
         },
       });
 
-      if (cache) {
+      // Don't cache an empty result — that's almost always upstream being rate-limited rather
+      // than genuinely nothing trending, and caching it would make a transient blip linger for
+      // the full TTL instead of healing on the next request.
+      if (cache && tokens.length > 0) {
         ctx.waitUntil(cache.put(cacheKey, response.clone()));
       }
 
