@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchTrending, formatPrice, formatVolume, type TrendingToken } from "../trending";
+import { fetchTrending, formatPrice, formatVolume, geckoTerminalUrl, type TrendingToken } from "../trending";
 
 export function Trending() {
   const [tokens, setTokens] = useState<TrendingToken[] | null>(null);
@@ -56,18 +56,33 @@ export function Trending() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((t) => (
-                  <tr key={t.symbol}>
-                    <td className="trending-symbol">{t.symbol}</td>
-                    <td>{formatPrice(t.priceUsd)}</td>
-                    <td className={t.change24h >= 0 ? "ticker-change-up" : "ticker-change-down"}>
-                      {t.change24h >= 0 ? "+" : ""}
-                      {t.change24h.toFixed(1)}%
-                    </td>
-                    <td>{formatVolume(t.volumeUsd24h)}</td>
-                    <td className="trending-dex">{t.dex.replace(/-/g, " ")}</td>
-                  </tr>
-                ))}
+                {filtered.map((t) => {
+                  const url = geckoTerminalUrl(t);
+                  return (
+                    <tr
+                      key={t.symbol}
+                      className={url ? "trending-row-clickable" : undefined}
+                      onClick={url ? () => window.open(url, "_blank", "noopener,noreferrer") : undefined}
+                    >
+                      <td className="trending-symbol">
+                        {url ? (
+                          <a href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                            {t.symbol}
+                          </a>
+                        ) : (
+                          t.symbol
+                        )}
+                      </td>
+                      <td>{formatPrice(t.priceUsd)}</td>
+                      <td className={t.change24h >= 0 ? "ticker-change-up" : "ticker-change-down"}>
+                        {t.change24h >= 0 ? "+" : ""}
+                        {t.change24h.toFixed(1)}%
+                      </td>
+                      <td>{formatVolume(t.volumeUsd24h)}</td>
+                      <td className="trending-dex">{t.dex.replace(/-/g, " ")}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

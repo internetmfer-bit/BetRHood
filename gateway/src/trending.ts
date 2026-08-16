@@ -14,11 +14,15 @@ export interface TrendingToken {
   change24h: number;
   volumeUsd24h: number;
   dex: string;
+  /** Pool contract address, for linking out to its GeckoTerminal page. Empty string if GeckoTerminal
+   * didn't include one (link should be omitted in that case, not built with a blank address). */
+  poolAddress: string;
 }
 
 interface GeckoTerminalPool {
   attributes?: {
     name?: string;
+    address?: string;
     base_token_price_usd?: string;
     price_change_percentage?: { h24?: string };
     volume_usd?: { h24?: string };
@@ -53,6 +57,7 @@ export function parseTrendingPools(json: unknown): TrendingToken[] {
         change24h: Number.isFinite(change24h) ? change24h : 0,
         volumeUsd24h: Number.isFinite(volumeUsd24h) ? volumeUsd24h : 0,
         dex: pool.relationships?.dex?.data?.id ?? "",
+        poolAddress: a.address ?? "",
       };
     })
     .filter((t): t is TrendingToken => t !== null);

@@ -11,6 +11,7 @@ const REAL_FIXTURE = {
       attributes: {
         base_token_price_usd: "0.0000299306797829554",
         name: "HONKCOIN / WETH",
+        address: "0x668bd096878e01a249a26c52db0a0a30def481568",
         price_change_percentage: { h24: "-27.245" },
         volume_usd: { h24: "91749.7316252621" },
       },
@@ -24,6 +25,7 @@ const REAL_FIXTURE = {
       attributes: {
         base_token_price_usd: "0.000359256485952708",
         name: "ONGR / WETH 1%",
+        address: "0x2c52076b7a6500845bf55b290e0b1d18f3a89c52",
         price_change_percentage: { h24: "3268.843" },
         volume_usd: { h24: "1615856.86247889" },
       },
@@ -38,8 +40,22 @@ describe("parseTrendingPools", () => {
   it("parses real GeckoTerminal pool data into the simplified shape", () => {
     const result = parseTrendingPools(REAL_FIXTURE);
     expect(result).toEqual([
-      { symbol: "HONKCOIN", priceUsd: 0.0000299306797829554, change24h: -27.245, volumeUsd24h: 91749.7316252621, dex: "pons-v2-dex" },
-      { symbol: "ONGR", priceUsd: 0.000359256485952708, change24h: 3268.843, volumeUsd24h: 1615856.86247889, dex: "pons-v2-dex" },
+      {
+        symbol: "HONKCOIN",
+        priceUsd: 0.0000299306797829554,
+        change24h: -27.245,
+        volumeUsd24h: 91749.7316252621,
+        dex: "pons-v2-dex",
+        poolAddress: "0x668bd096878e01a249a26c52db0a0a30def481568",
+      },
+      {
+        symbol: "ONGR",
+        priceUsd: 0.000359256485952708,
+        change24h: 3268.843,
+        volumeUsd24h: 1615856.86247889,
+        dex: "pons-v2-dex",
+        poolAddress: "0x2c52076b7a6500845bf55b290e0b1d18f3a89c52",
+      },
     ]);
   });
 
@@ -64,7 +80,7 @@ describe("parseTrendingPools", () => {
         { attributes: { base_token_price_usd: "1" } },
       ],
     });
-    expect(result).toEqual([{ symbol: "GOOD", priceUsd: 1.5, change24h: 0, volumeUsd24h: 0, dex: "" }]);
+    expect(result).toEqual([{ symbol: "GOOD", priceUsd: 1.5, change24h: 0, volumeUsd24h: 0, dex: "", poolAddress: "" }]);
   });
 
   it("defaults missing 24h change/volume to 0 rather than NaN", () => {
@@ -77,7 +93,7 @@ describe("parseTrendingPools", () => {
 });
 
 function token(symbol: string, volumeUsd24h: number): TrendingToken {
-  return { symbol, priceUsd: 1, change24h: 0, volumeUsd24h, dex: "test-dex" };
+  return { symbol, priceUsd: 1, change24h: 0, volumeUsd24h, dex: "test-dex", poolAddress: "0xtest" };
 }
 
 describe("dedupeBySymbol", () => {

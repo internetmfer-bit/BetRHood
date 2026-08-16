@@ -4,6 +4,15 @@ export interface TrendingToken {
   change24h: number;
   volumeUsd24h: number;
   dex: string;
+  poolAddress: string;
+}
+
+/** GeckoTerminal's own pool page — the real source of this data, and the natural place to send
+ * someone who wants a chart, contract address, and full trade history for one token. Returns
+ * null when there's no pool address to link to, so callers can render plain text instead. */
+export function geckoTerminalUrl(token: TrendingToken): string | null {
+  if (!token.poolAddress) return null;
+  return `https://www.geckoterminal.com/robinhood/pools/${token.poolAddress}`;
 }
 
 export function formatPrice(n: number): string {
