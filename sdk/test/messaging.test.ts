@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, defineChain, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { getMessage, getMessagesBySender, getMessagesByTopic, postMessage } from "../src/messaging.js";
+import { getMessage, getMessageCount, getMessagesBySender, getMessagesByTopic, postMessage } from "../src/messaging.js";
 import { ANVIL_RPC, startChain, stopChain, TEST_PRIVATE_KEY, type TestAddresses } from "./setup.js";
 
 const anvilChain = defineChain({
@@ -71,6 +71,15 @@ describe("postMessage / getMessage(s)", () => {
     });
     expect(bySender2.every((m) => m.sender.toLowerCase() === otherAccount.address.toLowerCase())).toBe(true);
     expect(bySender2.some((m) => new TextDecoder().decode(m.body) === "from account 2")).toBe(true);
+  });
+
+  it("getMessageCount reflects total posts across all topics and senders", async () => {
+    const before = await getMessageCount(publicClient, { messagingAddress: addresses.messaging });
+    await postMessage(publicClient, walletClient, `count-test-${Date.now()}`, "one", {
+      messagingAddress: addresses.messaging,
+    });
+    const after = await getMessageCount(publicClient, { messagingAddress: addresses.messaging });
+    expect(after).toBe(before + 1n);
   });
 
   it("rejects an empty body before calling the chain", async () => {

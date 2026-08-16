@@ -62,6 +62,19 @@ export async function postMessage(
   return { messageId: messageId as bigint, txHash };
 }
 
+/** Total number of messages ever posted, across every topic and sender. Useful for a
+ * global "recent activity" feed without filtering by topic or sender. */
+export async function getMessageCount(
+  publicClient: PublicClient,
+  options?: { messagingAddress?: Address },
+): Promise<bigint> {
+  return (await publicClient.readContract({
+    address: options?.messagingAddress ?? addresses.messaging,
+    abi: MessagingAbi,
+    functionName: "messageCount",
+  })) as bigint;
+}
+
 export async function getMessage(
   publicClient: PublicClient,
   messageId: bigint,

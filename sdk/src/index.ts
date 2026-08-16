@@ -9,6 +9,7 @@ export { upload, resolve, getVersionCount, EmptyDataError } from "./storage.js";
 export {
   postMessage,
   getMessage,
+  getMessageCount,
   getMessagesByTopic,
   getMessagesBySender,
   EmptyBodyError,
