@@ -1,14 +1,25 @@
-import { getMessage, getMessageCount, getMessagesByTopic, getProfile, getProfilePicture, postMessage, type Message } from "@betrhood/sdk";
+import {
+  getMessage,
+  getMessageCount,
+  getMessagesByTopic,
+  getProfile,
+  getProfilePicture,
+  getUpvoteCount,
+  postMessage,
+  resolve,
+  type Message,
+} from "@betrhood/sdk";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { type Address } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { UpvoteButton } from "../components/UpvoteButton";
+import { isImageKey, mimeForExtension, extensionOf } from "../fileType";
 import { isReservedTopic, SHOWCASE_TOPIC } from "../topics";
 
 const RECENT_LIMIT = 30;
 const ACTIVE_PROFILES_LIMIT = 6;
-const SHOWCASE_LIMIT = 6;
+const SHOWCASE_LIMIT = 16;
 
 function truncate(address: string): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -73,9 +84,11 @@ export function Home() {
   const [profiles, setProfiles] = useState<ActiveProfile[]>([]);
   const [showcase, setShowcase] = useState<ShowcaseItem[]>([]);
   const [showcaseSenderNames, setShowcaseSenderNames] = useState<Record<string, string>>({});
+  const [showcaseThumbs, setShowcaseThumbs] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const pictureUrls = useRef<string[]>([]);
+  const showcaseThumbUrls = useRef<string[]>([]);
 
   const [newTopic, setNewTopic] = useState("");
   const [newBody, setNewBody] = useState("");
@@ -132,7 +145,7 @@ export function Home() {
         if (!cancelled) setProfiles(profileResults);
 
         const showcaseMessages = await getMessagesByTopic(publicClient, SHOWCASE_TOPIC);
-        const items = showcaseMessages
+        const rawItems = showcaseMessages
           .slice(-SHOWCASE_LIMIT)
           .reverse()
           .map((m): ShowcaseItem | null => {
@@ -142,9 +155,20 @@ export function Home() {
               : null;
           })
           .filter((x): x is ShowcaseItem => x !== null);
+
+        // Sort by upvotes (most-voted first), ties broken by most recent — the reason this
+        // section fetches counts upfront instead of leaving it to each item's own UpvoteButton.
+        const voteCounts = await Promise.all(rawItems.map((item) => getUpvoteCount(publicClient, item.id)));
+        const items = rawItems
+          .map((item, i) => ({ item, votes: voteCounts[i] }))
+          .sort((a, b) => {
+            if (a.votes !== b.votes) return a.votes > b.votes ? -1 : 1;
+            return Number(b.item.timestamp - a.item.timestamp);
+          })
+          .map(({ item }) => item);
         if (!cancelled) setShowcase(items);
 
-        // Non-fatal — a failure here just means showcase cards fall back to addresses.
+        // Non-fatal — a failure here just means showcase bubbles fall back to addresses.
         try {
           const uniqueShowcaseSenders = [...new Set(items.map((item) => item.sender))];
           const nameEntries = await Promise.all(
@@ -155,6 +179,34 @@ export function Home() {
           );
           if (!cancelled) {
             setShowcaseSenderNames(Object.fromEntries(nameEntries.filter(([, name]) => name.length > 0)));
+          }
+        } catch {
+          // ignore
+        }
+
+        // Non-fatal, per-item — a thumbnail failing just means that one bubble shows no image
+        // instead of breaking the whole section. Only fetched for keys that look like images.
+        try {
+          const imageItems = items.filter((item) => isImageKey(item.key));
+          const thumbEntries = await Promise.all(
+            imageItems.map(async (item): Promise<[string, string] | null> => {
+              try {
+                const bytes = await resolve(publicClient, item.sender, item.key);
+                if (bytes.length === 0) return null;
+                const url = URL.createObjectURL(
+                  new Blob([new Uint8Array(bytes)], { type: mimeForExtension(extensionOf(item.key)) }),
+                );
+                showcaseThumbUrls.current.push(url);
+                return [item.id.toString(), url];
+              } catch {
+                return null;
+              }
+            }),
+          );
+          if (!cancelled) {
+            setShowcaseThumbs(
+              Object.fromEntries(thumbEntries.filter((e): e is [string, string] => e !== null)),
+            );
           }
         } catch {
           // ignore
@@ -173,6 +225,8 @@ export function Home() {
       cancelled = true;
       for (const url of pictureUrls.current) URL.revokeObjectURL(url);
       pictureUrls.current = [];
+      for (const url of showcaseThumbUrls.current) URL.revokeObjectURL(url);
+      showcaseThumbUrls.current = [];
     };
   }, [publicClient]);
 
@@ -256,19 +310,30 @@ export function Home() {
         {showcase.length === 0 ? (
           <p className="hint">Nothing shared yet — upload something and share it.</p>
         ) : (
-          <div className="apps-grid">
-            {showcase.map((item) => (
-              <div className="app-card" key={item.id.toString()}>
-                <Link to={`/view/${item.sender}/${encodeURIComponent(item.key)}`} className="app-card-link">
-                  <p className="app-card-title">{item.key}</p>
-                  <p className="app-card-desc">{item.caption || "—"}</p>
-                  <p className="section-note">by {showcaseSenderNames[item.sender] || truncate(item.sender)}</p>
-                </Link>
-                <div className="app-card-footer">
+          <div className="showcase-grid">
+            {showcase.map((item) => {
+              const thumb = showcaseThumbs[item.id.toString()];
+              const senderLabel = showcaseSenderNames[item.sender] || truncate(item.sender);
+              return (
+                <div className="showcase-bubble" key={item.id.toString()}>
+                  <Link
+                    to={`/view/${item.sender}/${encodeURIComponent(item.key)}`}
+                    className="showcase-bubble-link"
+                    title={`${item.key}${item.caption ? ` — ${item.caption}` : ""} — by ${senderLabel}`}
+                  >
+                    <span className="showcase-bubble-thumb">
+                      {thumb ? (
+                        <img src={thumb} alt="" />
+                      ) : (
+                        <span className="showcase-bubble-thumb-fallback">{extensionOf(item.key) || "file"}</span>
+                      )}
+                    </span>
+                    <span className="showcase-bubble-key">{item.key}</span>
+                  </Link>
                   <UpvoteButton messageId={item.id} />
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

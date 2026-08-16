@@ -3,19 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { isAddress, type Address } from "viem";
 import { usePublicClient } from "wagmi";
-
-const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg"]);
-const TEXT_EXTENSIONS = new Set(["txt", "json", "md", "html", "css", "js"]);
-
-function extensionOf(key: string): string {
-  const i = key.lastIndexOf(".");
-  return i === -1 ? "" : key.slice(i + 1).toLowerCase();
-}
-
-function mimeFor(ext: string): string {
-  const map: Record<string, string> = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", svg: "image/svg+xml" };
-  return map[ext] ?? "application/octet-stream";
-}
+import { extensionOf, IMAGE_EXTENSIONS, mimeForExtension, TEXT_EXTENSIONS } from "../fileType";
 
 type State =
   | { status: "loading" }
@@ -119,7 +107,7 @@ function Preview({ bytes, keyName }: { bytes: Uint8Array; keyName: string }) {
 
   useEffect(() => {
     if (!isImage) return;
-    const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: mimeFor(ext) }));
+    const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: mimeForExtension(ext) }));
     setImageUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [bytes, ext, isImage]);
