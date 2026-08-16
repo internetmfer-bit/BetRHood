@@ -77,6 +77,38 @@ export function Agents() {
       </div>
 
       <div className="section agents-section">
+        <h2>How storage works</h2>
+        <p>
+          A single onchain transaction can't hold arbitrarily large data, so <code>upload()</code>{" "}
+          runs a pipeline before it ever writes anything:
+        </p>
+        <ol className="agents-list agents-list-ordered">
+          <li>The data is <strong>gzipped</strong> first (native <code>CompressionStream</code>, no dependency).</li>
+          <li>
+            The compressed bytes are <strong>split into chunks</strong> of up to 20,000 bytes each. That
+            limit exists because every chunk is stored via <strong>SSTORE2</strong> — written as a tiny
+            contract's bytecode rather than a regular storage slot, which is dramatically cheaper for
+            anything bigger than a few words — and a deployed contract can't exceed 24,576 bytes
+            (EIP-170), so a chunk has to fit comfortably under that.
+          </li>
+          <li>
+            All the chunks go up in <strong>one transaction</strong> — <code>Storage.write(key, chunks)</code>{" "}
+            stores each chunk's SSTORE2 pointer and pushes them as a new <strong>version</strong>. Nothing is
+            ever overwritten; every prior version stays readable forever.
+          </li>
+          <li>
+            <code>resolve()</code> reverses it: reads every chunk pointer for the latest version,
+            concatenates them, and gunzips the result back to the original bytes.
+          </li>
+        </ol>
+        <p>
+          This is the same underlying idea Net Protocol popularized — split large content across
+          multiple onchain writes to work around transaction and contract size limits — implemented
+          here as one contract instead of several, with gzip added before chunking.
+        </p>
+      </div>
+
+      <div className="section agents-section">
         <h2>Chain</h2>
         <table className="agents-table">
           <tbody>

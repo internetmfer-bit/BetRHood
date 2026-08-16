@@ -367,6 +367,9 @@ a { color: var(--matrix); }
 
 .agents-list { color: var(--text-soft); font-size: 0.95rem; line-height: 1.7; padding-left: 20px; margin: 0; }
 .agents-list li { margin-bottom: 6px; }
+.agents-list-ordered { list-style: decimal; margin-bottom: 12px; }
+.agents-list-ordered li::marker { color: var(--matrix); font-family: var(--font-mono); }
+.agents-list-ordered strong { color: var(--lime); font-weight: normal; }
 
 .code-block {
   font-family: var(--font-mono);
