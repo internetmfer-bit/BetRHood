@@ -232,7 +232,6 @@ export function Home() {
       <div className="section">
         <div className="section-head">
           <h2 className="section-title">Showcase</h2>
-          <span className="section-note">things people have made</span>
         </div>
         {showcase.length === 0 ? (
           <p className="hint">Nothing shared yet — upload something and share it.</p>
@@ -257,7 +256,6 @@ export function Home() {
       <div className="section">
         <div className="section-head">
           <h2 className="section-title">Forum</h2>
-          <span className="section-note">Trending / Popular sorting coming soon</span>
         </div>
 
         {loading && <p className="hint">Loading…</p>}
