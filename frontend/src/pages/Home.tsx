@@ -72,6 +72,7 @@ export function Home() {
   const [topics, setTopics] = useState<TopicGroup[]>([]);
   const [profiles, setProfiles] = useState<ActiveProfile[]>([]);
   const [showcase, setShowcase] = useState<ShowcaseItem[]>([]);
+  const [showcaseSenderNames, setShowcaseSenderNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const pictureUrls = useRef<string[]>([]);
@@ -139,6 +140,22 @@ export function Home() {
           })
           .filter((x): x is ShowcaseItem => x !== null);
         if (!cancelled) setShowcase(items);
+
+        // Non-fatal — a failure here just means showcase cards fall back to addresses.
+        try {
+          const uniqueShowcaseSenders = [...new Set(items.map((item) => item.sender))];
+          const nameEntries = await Promise.all(
+            uniqueShowcaseSenders.map(async (sender): Promise<[Address, string]> => {
+              const profile = await getProfile(publicClient, sender);
+              return [sender, profile.name];
+            }),
+          );
+          if (!cancelled) {
+            setShowcaseSenderNames(Object.fromEntries(nameEntries.filter(([, name]) => name.length > 0)));
+          }
+        } catch {
+          // ignore
+        }
 
         setLoading(false);
       } catch (err) {
@@ -242,7 +259,7 @@ export function Home() {
                 <Link to={`/view/${item.sender}/${encodeURIComponent(item.key)}`} className="app-card-link">
                   <p className="app-card-title">{item.key}</p>
                   <p className="app-card-desc">{item.caption || "—"}</p>
-                  <p className="section-note">by {truncate(item.sender)}</p>
+                  <p className="section-note">by {showcaseSenderNames[item.sender] || truncate(item.sender)}</p>
                 </Link>
                 <div className="app-card-footer">
                   <UpvoteButton messageId={item.id} />

@@ -43,6 +43,10 @@ export function Upload() {
   const [history, setHistory] = useState<UploadRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [shareOpenIndex, setShareOpenIndex] = useState<number | null>(null);
+  const [shareCaption, setShareCaption] = useState("");
+  const [sharing, setSharing] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   const chunkEstimate = file ? Math.max(1, Math.ceil(file.size / CHUNK_SIZE)) : 0;
   const previewLink = address && key.trim() ? `gateway.betrhood.com/${address}/${encodeURIComponent(key.trim())}` : null;
@@ -104,6 +108,22 @@ export function Upload() {
     } catch (err) {
       setError((err as Error).message);
       setStage("error");
+    }
+  }
+
+  async function handleShareExisting(recordKey: string) {
+    if (!publicClient || !walletClient) return;
+    setSharing(true);
+    setShareError(null);
+    try {
+      const body = JSON.stringify({ key: recordKey, caption: shareCaption });
+      await postMessage(publicClient, walletClient, SHOWCASE_TOPIC, body);
+      setShareOpenIndex(null);
+      setShareCaption("");
+    } catch (err) {
+      setShareError((err as Error).message);
+    } finally {
+      setSharing(false);
     }
   }
 
@@ -227,18 +247,62 @@ export function Upload() {
         {!historyLoading && !historyError && history.length > 0 && (
           <div className="thread-list">
             {history.map((record, i) => (
-              <a
-                key={i}
-                className="upload-history-item"
-                href={`https://gateway.betrhood.com/${address}/${encodeURIComponent(record.key)}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <span className="upload-history-key">{record.key}</span>
-                <span className="upload-history-meta">
-                  {(record.size / 1024).toFixed(1)} KB · {new Date(Number(record.timestamp) * 1000).toLocaleString()}
-                </span>
-              </a>
+              <div className="upload-history-item" key={i}>
+                <a
+                  className="upload-history-link"
+                  href={`https://gateway.betrhood.com/${address}/${encodeURIComponent(record.key)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span className="upload-history-key">{record.key}</span>
+                  <span className="upload-history-meta">
+                    {(record.size / 1024).toFixed(1)} KB · {new Date(Number(record.timestamp) * 1000).toLocaleString()}
+                  </span>
+                </a>
+
+                {shareOpenIndex === i ? (
+                  <div className="upload-history-share-form">
+                    <input
+                      className="field"
+                      value={shareCaption}
+                      onChange={(e) => setShareCaption(e.target.value)}
+                      placeholder="Say something about it (optional)"
+                      maxLength={200}
+                    />
+                    <div className="upload-history-share-actions">
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => handleShareExisting(record.key)}
+                        disabled={sharing}
+                      >
+                        {sharing ? "Sharing…" : "Confirm Share"}
+                      </button>
+                      <button
+                        className="btn-copy"
+                        onClick={() => {
+                          setShareOpenIndex(null);
+                          setShareCaption("");
+                          setShareError(null);
+                        }}
+                      >
+                        cancel
+                      </button>
+                    </div>
+                    {shareError && <p className="error">{shareError}</p>}
+                  </div>
+                ) : (
+                  <button
+                    className="btn upload-history-share-btn"
+                    onClick={() => {
+                      setShareOpenIndex(i);
+                      setShareCaption("");
+                      setShareError(null);
+                    }}
+                  >
+                    Share to Showcase
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         )}

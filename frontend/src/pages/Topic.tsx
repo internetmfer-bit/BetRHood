@@ -1,6 +1,7 @@
-import { getMessagesByTopic, postMessage, type Message } from "@betrhood/sdk";
+import { getMessagesByTopic, getProfile, postMessage, type Message } from "@betrhood/sdk";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import type { Address } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { UpvoteButton } from "../components/UpvoteButton";
 
@@ -23,6 +24,7 @@ export function Topic() {
   const { data: walletClient } = useWalletClient();
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [senderNames, setSenderNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reply, setReply] = useState("");
@@ -35,6 +37,21 @@ export function Topic() {
     try {
       const results = await getMessagesByTopic(publicClient, topic);
       setMessages(results);
+
+      // A failure here shouldn't hide the messages that already loaded fine — worst case,
+      // senders just show as truncated addresses instead of names.
+      try {
+        const uniqueSenders = [...new Set(results.map((m) => m.sender))];
+        const profiles = await Promise.all(
+          uniqueSenders.map(async (sender): Promise<[Address, string]> => {
+            const profile = await getProfile(publicClient, sender);
+            return [sender, profile.name];
+          }),
+        );
+        setSenderNames(Object.fromEntries(profiles.filter(([, name]) => name.length > 0)));
+      } catch {
+        // Non-fatal — fall back to addresses.
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -75,7 +92,7 @@ export function Topic() {
         {messages.map((m) => (
           <div className="post" key={m.id.toString()}>
             <div className="post-meta">
-              <Link to={`/u/${m.sender}`}>{truncate(m.sender)}</Link>
+              <Link to={`/u/${m.sender}`}>{senderNames[m.sender] || truncate(m.sender)}</Link>
               <span> · {new Date(Number(m.timestamp) * 1000).toLocaleString()}</span>
             </div>
             <div className="post-body">{bodyText(m.body)}</div>
