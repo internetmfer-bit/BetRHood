@@ -47,6 +47,23 @@ a { color: var(--matrix); }
   .connect-wrap { flex-basis: 100%; margin-left: 0; }
 }
 
+.network-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 16px;
+  padding: 12px 24px;
+  background: var(--matrix-soft);
+  border-bottom: 1px solid var(--matrix);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--text);
+  text-align: center;
+}
+.network-banner strong { color: var(--matrix); }
+.network-banner .btn { padding: 6px 14px; font-size: 0.9rem; }
+
 .brand {
   font-family: var(--font-display);
   font-weight: 700;

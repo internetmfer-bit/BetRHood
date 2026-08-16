@@ -1,3 +1,4 @@
+import { robinhoodChain } from "@betrhood/sdk";
 import { useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
@@ -51,7 +52,7 @@ export function ConnectButton() {
               key={connector.uid}
               className="menu-item"
               onClick={() => {
-                connect({ connector });
+                connect({ connector, chainId: robinhoodChain.id });
                 setMenuOpen(false);
               }}
             >

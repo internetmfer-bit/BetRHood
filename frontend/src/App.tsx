@@ -1,5 +1,6 @@
 import { Link, Route, Routes } from "react-router-dom";
 import { ConnectButton } from "./components/ConnectButton.js";
+import { NetworkBanner } from "./components/NetworkBanner.js";
 import { Agents } from "./pages/Agents.js";
 import { Home } from "./pages/Home.js";
 import { Profile } from "./pages/Profile.js";
@@ -22,6 +23,8 @@ export default function App() {
         </nav>
         <ConnectButton />
       </header>
+
+      <NetworkBanner />
 
       <main className="main">
         <Routes>

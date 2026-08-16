@@ -1,4 +1,4 @@
-import { getBio, getProfile, getProfilePicture, setBio as setBioOnChain, setName as setNameOnChain, setPicture } from "@betrhood/sdk";
+import { CHUNK_SIZE, getBio, getProfile, getProfilePicture, setBio as setBioOnChain, setName as setNameOnChain, setPicture } from "@betrhood/sdk";
 import { useEffect, useRef, useState } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
@@ -60,7 +60,10 @@ export function Profile() {
   }, [pendingFile]);
 
   async function handleSave() {
-    if (!publicClient || !walletClient) return;
+    if (!publicClient || !walletClient) {
+      setError("Wallet isn't ready yet — wait a moment and try again, or reconnect it.");
+      return;
+    }
     setSaving(true);
     setError(null);
 
@@ -112,6 +115,13 @@ export function Profile() {
         />
       </label>
       <p className="hint">Picture uploads through Storage, same as any other file.</p>
+      {pendingFile && (
+        <p className="hint">
+          {(pendingFile.size / 1024).toFixed(1)} KB →{" "}
+          {Math.max(1, Math.ceil(pendingFile.size / CHUNK_SIZE))} chunk(s). Bigger pictures cost more
+          gas to store — a typical small avatar (under ~200 KB) keeps that cost trivial.
+        </p>
+      )}
 
       <input
         className="field"
