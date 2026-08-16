@@ -2,7 +2,6 @@ import { type Address, type Transport, createPublicClient, fallback, http } from
 import { addresses, resolve, robinhoodChain } from "@betrhood/sdk";
 import { contentTypeForBytes, contentTypeForKey } from "./contentType.js";
 import { InvalidLinkError, parseLink } from "./parseLink.js";
-import { fetchTrendingNFTs } from "./nftTrending.js";
 import { fetchTrendingPools } from "./trending.js";
 
 export interface Env {
@@ -29,11 +28,6 @@ function buildTransport(env: Env): Transport {
  * not "immutable forever" — long enough to take real load off the RPC, short enough that an
  * update to a key shows up again quickly. */
 const CACHE_TTL_SECONDS = 60;
-
-/** NFT floor price/volume don't move nearly as fast as DEX token prices — a few minutes stale
- * is fine, and it keeps the per-collection stats calls this makes well under OpenSea's free-tier
- * rate limit. */
-const NFT_CACHE_TTL_SECONDS = 300;
 
 const CORS_HEADERS: Record<string, string> = {
   "access-control-allow-origin": "*",
@@ -93,38 +87,6 @@ export default {
       // than genuinely nothing trending, and caching it would make a transient blip linger for
       // the full TTL instead of healing on the next request.
       if (cache && tokens.length > 0) {
-        ctx.waitUntil(cache.put(cacheKey, response.clone()));
-      }
-
-      return response;
-    }
-
-    // Same proxy-and-cache shape as /trending above, against OpenSea instead of GeckoTerminal.
-    if (url.pathname === "/nfts") {
-      const cache = typeof caches !== "undefined" ? caches.default : undefined;
-      const cacheKey = new Request(url.toString(), request);
-      if (cache) {
-        const cached = await cache.match(cacheKey);
-        if (cached) return cached;
-      }
-
-      let nfts: Awaited<ReturnType<typeof fetchTrendingNFTs>>;
-      try {
-        nfts = await fetchTrendingNFTs(cache);
-      } catch (err) {
-        return textResponse(`NFT trending data unavailable: ${(err as Error).message}`, 502);
-      }
-
-      const response = new Response(JSON.stringify(nfts), {
-        status: 200,
-        headers: {
-          "content-type": "application/json",
-          "cache-control": `public, max-age=${NFT_CACHE_TTL_SECONDS}`,
-          ...CORS_HEADERS,
-        },
-      });
-
-      if (cache && nfts.length > 0) {
         ctx.waitUntil(cache.put(cacheKey, response.clone()));
       }
 
