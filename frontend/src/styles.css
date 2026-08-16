@@ -187,6 +187,19 @@ a { color: var(--matrix); }
   font-size: 1rem;
 }
 .link-row span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--matrix); }
+
+.upload-history { margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--line); }
+.upload-history-title { font-family: var(--font-display); font-size: 0.95rem; color: var(--lime); margin: 0 0 12px; }
+.upload-history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+}
+.upload-history-key { color: var(--matrix); font-family: var(--font-mono); font-size: 0.98rem; word-break: break-all; }
+.upload-history-meta { color: var(--text-faint); font-family: var(--font-mono); font-size: 0.85rem; }
 .btn-copy {
   font-family: var(--font-mono);
   border: none;

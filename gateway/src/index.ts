@@ -1,6 +1,6 @@
 import { type Address, type Transport, createPublicClient, fallback, http } from "viem";
 import { addresses, resolve, robinhoodChain } from "@betrhood/sdk";
-import { contentTypeForKey } from "./contentType.js";
+import { contentTypeForBytes, contentTypeForKey } from "./contentType.js";
 import { InvalidLinkError, parseLink } from "./parseLink.js";
 
 export interface Env {
@@ -90,10 +90,13 @@ export default {
       return textResponse("Not found", 404);
     }
 
+    const keyType = contentTypeForKey(parsed.key);
+    const contentType = keyType === "application/octet-stream" ? contentTypeForBytes(bytes) ?? keyType : keyType;
+
     const response = new Response(bytes, {
       status: 200,
       headers: {
-        "content-type": contentTypeForKey(parsed.key),
+        "content-type": contentType,
         "cache-control": `public, max-age=${CACHE_TTL_SECONDS}`,
         ...CORS_HEADERS,
       },
