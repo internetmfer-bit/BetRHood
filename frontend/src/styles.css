@@ -423,6 +423,22 @@ a { color: var(--matrix); }
 .post-body { color: var(--text); font-size: 1.05rem; margin-top: 4px; white-space: pre-wrap; word-break: break-word; }
 .post-footer { margin-top: 8px; }
 
+.post-card-list { display: flex; flex-direction: column; gap: 2px; }
+.post-card { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.post-card-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.repost-banner { color: var(--text-faint); font-family: var(--font-mono); font-size: 0.98rem; margin-bottom: 6px; }
+.repost-banner a { color: var(--text-faint); text-decoration: none; }
+.repost-banner a:hover { color: var(--matrix); }
+.comment-thread {
+  margin-top: 10px;
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.comment { padding: 4px 0; }
+
 .upvote { display: inline-flex; align-items: center; gap: 8px; }
 .upvote-btn {
   display: inline-flex;

@@ -12,6 +12,8 @@ export {
   getMessageCount,
   getMessagesByTopic,
   getMessagesBySender,
+  getRecentMessagesBySender,
+  getTopicMessageCount,
   EmptyBodyError,
   type Message,
 } from "./messaging.js";

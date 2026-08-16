@@ -3,6 +3,7 @@ import { ConnectButton } from "./components/ConnectButton.js";
 import { NetworkBanner } from "./components/NetworkBanner.js";
 import { TrendingTicker } from "./components/TrendingTicker.js";
 import { Agents } from "./pages/Agents.js";
+import { Feed } from "./pages/Feed.js";
 import { Home } from "./pages/Home.js";
 import { Profile } from "./pages/Profile.js";
 import { ProfileView } from "./pages/ProfileView.js";
@@ -24,6 +25,7 @@ export default function App() {
           <Link to="/profile">Profile</Link>
           <Link to="/upload">Upload</Link>
           <Link to="/trending">Tokens</Link>
+          <Link to="/feed">Onchain Social</Link>
           <Link to="/agents">For Agents</Link>
         </nav>
         <ConnectButton />
@@ -38,6 +40,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/trending" element={<Trending />} />
+          <Route path="/feed" element={<Feed />} />
           <Route path="/u/:address" element={<ProfileView />} />
           <Route path="/topic/:topic" element={<Topic />} />
           <Route path="/view/:address/:key" element={<Viewer />} />

@@ -15,6 +15,7 @@ import { type Address } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { UpvoteButton } from "../components/UpvoteButton";
 import { isImageKey, mimeForExtension, extensionOf } from "../fileType";
+import { isCommentTopic } from "../social";
 import { isReservedTopic, SHOWCASE_TOPIC } from "../topics";
 
 const RECENT_LIMIT = 30;
@@ -116,7 +117,7 @@ export function Home() {
         // excluded here so they never show up as a browsable/postable "topic".
         const groups = new Map<string, TopicGroup>();
         for (const m of recentMessages) {
-          if (isReservedTopic(m.topic)) continue;
+          if (isReservedTopic(m.topic) || isCommentTopic(m.topic)) continue;
           const key = m.topic;
           const existing = groups.get(key);
           if (existing) {

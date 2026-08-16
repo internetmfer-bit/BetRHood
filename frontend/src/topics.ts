@@ -8,13 +8,19 @@ import { stringToHex } from "viem";
  */
 export const SHOWCASE_TOPIC = "showcase";
 export const UPLOADS_TOPIC = "uploads";
-export const RESERVED_TOPICS = [SHOWCASE_TOPIC, UPLOADS_TOPIC] as const;
+// Every profile's feed posts and reposts live here, disambiguated by a `type` field in the
+// JSON body — see frontend/src/social.ts. One shared topic rather than one-per-address because
+// Messaging.sol topics are capped at 32 bytes and a raw address alone (42 chars) blows that
+// budget; per-address filtering happens client-side via the message's `sender` field instead.
+export const SOCIAL_TOPIC = "social";
+export const RESERVED_TOPICS = [SHOWCASE_TOPIC, UPLOADS_TOPIC, SOCIAL_TOPIC] as const;
 
 // Message.topic comes back as this same bytes32 encoding — compare against these, not the raw
 // strings, when filtering messages already fetched by topic.
 export const SHOWCASE_TOPIC_HEX = stringToHex(SHOWCASE_TOPIC, { size: 32 });
 export const UPLOADS_TOPIC_HEX = stringToHex(UPLOADS_TOPIC, { size: 32 });
-export const RESERVED_TOPIC_HEXES = [SHOWCASE_TOPIC_HEX, UPLOADS_TOPIC_HEX] as const;
+export const SOCIAL_TOPIC_HEX = stringToHex(SOCIAL_TOPIC, { size: 32 });
+export const RESERVED_TOPIC_HEXES = [SHOWCASE_TOPIC_HEX, UPLOADS_TOPIC_HEX, SOCIAL_TOPIC_HEX] as const;
 
 export function isReservedTopic(topic: string): boolean {
   return (RESERVED_TOPICS as readonly string[]).includes(topic) || (RESERVED_TOPIC_HEXES as readonly string[]).includes(topic);

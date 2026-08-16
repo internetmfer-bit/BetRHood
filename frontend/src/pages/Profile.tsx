@@ -9,9 +9,12 @@ import {
   setName as setNameOnChain,
   setPicture,
 } from "@betrhood/sdk";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import type { Address } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { PostCard } from "../components/PostCard";
+import { getOwnSocialPosts, postToFeed, type FeedItem } from "../social";
 
 export function Profile() {
   const { address, isConnected } = useAccount();
@@ -29,6 +32,12 @@ export function Profile() {
   const [loaded, setLoaded] = useState(false);
   const [followerCount, setFollowerCount] = useState<bigint | null>(null);
   const [followingCount, setFollowingCount] = useState<bigint | null>(null);
+  const [posts, setPosts] = useState<FeedItem[]>([]);
+  const [postNames, setPostNames] = useState<Record<string, string>>({});
+  const [postsLoading, setPostsLoading] = useState(true);
+  const [postsError, setPostsError] = useState<string | null>(null);
+  const [postText, setPostText] = useState("");
+  const [posting, setPosting] = useState(false);
   const loadedPictureUrl = useRef<string | null>(null);
   // What's actually on chain right now, so Save can skip fields that haven't changed instead
   // of paying gas to write the exact same value back.
@@ -90,6 +99,57 @@ export function Profile() {
     setPendingPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [pendingFile]);
+
+  const loadPosts = useCallback(async () => {
+    if (!publicClient || !address) return;
+    setPostsLoading(true);
+    setPostsError(null);
+    try {
+      const items = await getOwnSocialPosts(publicClient, address);
+      setPosts(items);
+
+      // Non-fatal — reposted originals just show a truncated address instead of a name.
+      try {
+        const originalSenders = [...new Set(items.filter((i) => i.original).map((i) => i.original!.sender))];
+        const entries = await Promise.all(
+          originalSenders.map(async (sender): Promise<[Address, string]> => {
+            const profile = await getProfile(publicClient, sender);
+            return [sender, profile.name];
+          }),
+        );
+        const resolved = Object.fromEntries(entries.filter(([, n]) => n.length > 0));
+        // Your own posts/reposts always show `address` as a sender too (the reposter, for a
+        // repost) — include your own on-chain-confirmed name so it resolves the same way.
+        if (savedName.current) resolved[address] = savedName.current;
+        setPostNames(resolved);
+      } catch {
+        // ignore
+      }
+    } catch (err) {
+      setPostsError((err as Error).message);
+    } finally {
+      setPostsLoading(false);
+    }
+  }, [publicClient, address]);
+
+  useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
+
+  async function handlePost() {
+    if (!publicClient || !walletClient || postText.trim().length === 0) return;
+    setPosting(true);
+    setPostsError(null);
+    try {
+      await postToFeed(publicClient, walletClient, postText.trim());
+      setPostText("");
+      await loadPosts();
+    } catch (err) {
+      setPostsError((err as Error).message);
+    } finally {
+      setPosting(false);
+    }
+  }
 
   async function handleSave() {
     if (!publicClient || !walletClient) {
@@ -205,6 +265,41 @@ export function Profile() {
 
       {error && <p className="error">{error}</p>}
       {savedNotice && <p className="hint">Nothing changed — nothing to save.</p>}
+
+      <div className="upload-history">
+        <h2 className="upload-history-title">Your Posts</h2>
+
+        <div className="reply-box">
+          <textarea
+            className="field field-textarea"
+            value={postText}
+            onChange={(e) => setPostText(e.target.value)}
+            placeholder="Share something"
+            rows={3}
+          />
+          <button className="btn btn-primary" onClick={handlePost} disabled={posting || postText.trim().length === 0}>
+            {posting ? "Posting…" : "Post"}
+          </button>
+        </div>
+
+        {postsLoading && <p className="hint">Loading…</p>}
+        {!postsLoading && postsError && (
+          <p className="error">
+            Couldn't load your posts: {postsError}{" "}
+            <button className="btn-copy" onClick={loadPosts}>
+              retry
+            </button>
+          </p>
+        )}
+        {!postsLoading && !postsError && posts.length === 0 && <p className="hint">Nothing posted yet.</p>}
+        {posts.length > 0 && (
+          <div className="post-card-list">
+            {posts.map((item) => (
+              <PostCard key={item.post.id.toString()} item={item} names={postNames} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

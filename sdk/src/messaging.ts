@@ -91,6 +91,22 @@ export async function getMessage(
   return { id: messageId, sender, topic, body: hexToBytes(body), timestamp };
 }
 
+/** Cheap count of how many messages exist under `topic` — a single view call, unlike
+ * `getMessagesByTopic` which fetches every message body via SSTORE2. Use this for a badge
+ * or count display where the full list isn't needed. */
+export async function getTopicMessageCount(
+  publicClient: PublicClient,
+  topic: string,
+  options?: { messagingAddress?: Address },
+): Promise<bigint> {
+  return (await publicClient.readContract({
+    address: options?.messagingAddress ?? addresses.messaging,
+    abi: MessagingAbi,
+    functionName: "topicCount",
+    args: [topicToHex(topic)],
+  })) as bigint;
+}
+
 /** Returns every message posted under `topic`, oldest first. */
 export async function getMessagesByTopic(
   publicClient: PublicClient,
@@ -143,6 +159,40 @@ export async function getMessagesBySender(
         abi: MessagingAbi,
         functionName: "senderMessageId",
         args: [sender, BigInt(i)],
+      }) as Promise<bigint>,
+    ),
+  );
+
+  return Promise.all(ids.map((id) => getMessage(publicClient, id, options)));
+}
+
+/** Returns the most recent `limit` messages posted by `sender` (across every topic they've
+ * ever posted to), newest first. Unlike `getMessagesBySender`, this windows from the tail of
+ * the sender's index instead of fetching their entire history — the right choice for a feed
+ * that only needs a bounded, recent slice of a prolific poster's activity. */
+export async function getRecentMessagesBySender(
+  publicClient: PublicClient,
+  sender: Address,
+  limit: number,
+  options?: { messagingAddress?: Address },
+): Promise<Message[]> {
+  const address = options?.messagingAddress ?? addresses.messaging;
+
+  const count = (await publicClient.readContract({
+    address,
+    abi: MessagingAbi,
+    functionName: "senderCount",
+    args: [sender],
+  })) as bigint;
+
+  const windowSize = Math.min(Number(count), limit);
+  const ids = await Promise.all(
+    Array.from({ length: windowSize }, (_, i) =>
+      publicClient.readContract({
+        address,
+        abi: MessagingAbi,
+        functionName: "senderMessageId",
+        args: [sender, count - 1n - BigInt(i)],
       }) as Promise<bigint>,
     ),
   );

@@ -1,7 +1,15 @@
 import { createPublicClient, createWalletClient, defineChain, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { getMessage, getMessageCount, getMessagesBySender, getMessagesByTopic, postMessage } from "../src/messaging.js";
+import {
+  getMessage,
+  getMessageCount,
+  getMessagesBySender,
+  getMessagesByTopic,
+  getRecentMessagesBySender,
+  getTopicMessageCount,
+  postMessage,
+} from "../src/messaging.js";
 import { ANVIL_RPC, startChain, stopChain, TEST_PRIVATE_KEY, type TestAddresses } from "./setup.js";
 
 const anvilChain = defineChain({
@@ -86,5 +94,45 @@ describe("postMessage / getMessage(s)", () => {
     await expect(
       postMessage(publicClient, walletClient, "empty-body-test", "", { messagingAddress: addresses.messaging }),
     ).rejects.toThrow("empty body");
+  });
+
+  it("getTopicMessageCount matches the number of messages posted, without fetching bodies", async () => {
+    const topic = `count-topic-${Date.now()}`;
+    expect(await getTopicMessageCount(publicClient, topic, { messagingAddress: addresses.messaging })).toBe(0n);
+
+    await postMessage(publicClient, walletClient, topic, "one", { messagingAddress: addresses.messaging });
+    await postMessage(publicClient, walletClient, topic, "two", { messagingAddress: addresses.messaging });
+
+    expect(await getTopicMessageCount(publicClient, topic, { messagingAddress: addresses.messaging })).toBe(2n);
+  });
+
+  it("getRecentMessagesBySender returns only the last `limit` messages, newest first", async () => {
+    const topic = `recent-sender-test-${Date.now()}`;
+    for (const body of ["one", "two", "three", "four"]) {
+      await postMessage(publicClient, walletClient, topic, body, { messagingAddress: addresses.messaging });
+    }
+
+    const recent = await getRecentMessagesBySender(publicClient, account.address, 2, {
+      messagingAddress: addresses.messaging,
+    });
+    expect(recent.length).toBe(2);
+    expect(new TextDecoder().decode(recent[0].body)).toBe("four");
+    expect(new TextDecoder().decode(recent[1].body)).toBe("three");
+  });
+
+  it("getRecentMessagesBySender returns everything when `limit` exceeds the sender's history", async () => {
+    const otherAccount = privateKeyToAccount(
+      "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba",
+    );
+    const otherWallet = createWalletClient({ account: otherAccount, chain: anvilChain, transport: http() });
+    const topic = `recent-small-${Date.now()}`;
+
+    await postMessage(publicClient, otherWallet, topic, "only one", { messagingAddress: addresses.messaging });
+
+    const recent = await getRecentMessagesBySender(publicClient, otherAccount.address, 50, {
+      messagingAddress: addresses.messaging,
+    });
+    expect(recent.length).toBe(1);
+    expect(new TextDecoder().decode(recent[0].body)).toBe("only one");
   });
 });

@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import type { Address } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { UpvoteButton } from "../components/UpvoteButton";
+import { isCommentTopic } from "../social";
 import { isReservedTopic } from "../topics";
 
 function truncate(address: string): string {
@@ -81,7 +82,7 @@ export function Topic() {
 
   if (!topic) return null;
 
-  if (isReservedTopic(topic)) {
+  if (isReservedTopic(topic) || isCommentTopic(topic)) {
     return (
       <div className="panel">
         <h1>{topic}</h1>
