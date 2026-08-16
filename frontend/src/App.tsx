@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from "react-router-dom";
 import { ConnectButton } from "./components/ConnectButton.js";
 import { NetworkBanner } from "./components/NetworkBanner.js";
+import { TrendingTicker } from "./components/TrendingTicker.js";
 import { Agents } from "./pages/Agents.js";
 import { Home } from "./pages/Home.js";
 import { Profile } from "./pages/Profile.js";
@@ -12,6 +13,8 @@ import { Viewer } from "./pages/Viewer.js";
 export default function App() {
   return (
     <div className="app">
+      <TrendingTicker />
+
       <header className="nav">
         <Link to="/" className="brand">
           BetRHood

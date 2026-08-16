@@ -30,6 +30,41 @@ a { color: var(--matrix); }
 
 .app { min-height: 100vh; display: flex; flex-direction: column; }
 
+/* ---------- Trending ticker ---------- */
+
+.ticker {
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background: var(--black-raised);
+}
+.ticker-track {
+  display: inline-flex;
+  width: max-content;
+  animation: ticker-scroll 45s linear infinite;
+}
+.ticker:hover .ticker-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; overflow-x: auto; }
+}
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 18px;
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  border-right: 1px solid var(--line);
+  white-space: nowrap;
+}
+.ticker-symbol { color: var(--lime); }
+.ticker-price { color: var(--text-soft); }
+.ticker-change-up { color: var(--matrix); }
+.ticker-change-down { color: var(--error); }
+
 /* ---------- Nav ---------- */
 
 .nav {
