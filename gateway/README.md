@@ -1,6 +1,6 @@
 # BetRHood Protocol — Gateway
 
-A Cloudflare Worker that turns `betrhood.com/<address>/<key>` into a plain HTTP response —
+A Cloudflare Worker that turns `gateway.betrhood.com/<address>/<key>` into a plain HTTP response —
 the one piece of this protocol that isn't decentralized by default, and the reason it's kept
 this small and this open. Anyone can run their own copy of this exact Worker pointed at their
 own RPC endpoint; nothing here is special or privileged.
@@ -36,4 +36,4 @@ npm run deploy
 ```
 
 Requires a Cloudflare account logged in via `npx wrangler login` first. After deploying,
-point `betrhood.com`'s DNS at this Worker in the Cloudflare dashboard.
+point `gateway.betrhood.com`'s DNS at this Worker in the Cloudflare dashboard.
