@@ -487,6 +487,20 @@ a { color: var(--matrix); }
 .follow-btn-following { border-color: var(--matrix); color: var(--matrix); }
 .follow-btn-following:hover { border-color: var(--error); color: var(--error); }
 
+.profile-actions { display: inline-flex; align-items: center; gap: 10px; margin-top: 4px; }
+
+.dm-unlock { margin: 8px 0; }
+.dm-candidate {
+  display: block;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+}
+.dm-candidate:hover { color: var(--matrix); }
+
 .tabs { display: flex; gap: 16px; }
 .tab { font-family: var(--font-mono); font-size: 1.1rem; border: none; background: none; color: var(--text-faint); cursor: pointer; padding: 4px 0; }
 .tab-active { color: var(--lime); border-bottom: 2px solid var(--lime); }

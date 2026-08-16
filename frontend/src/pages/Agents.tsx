@@ -264,6 +264,67 @@ export function Agents() {
       </div>
 
       <div className="section agents-section">
+        <h2>Direct messages — end-to-end encrypted</h2>
+        <p>
+          No separate contract here either — built on <code>Storage</code> (public keys) and{" "}
+          <code>Messaging</code> (topic <code>"dm"</code>). Message <em>content</em> is genuinely
+          unreadable by anyone but the two participants; message <em>metadata</em> (who
+          messaged whom, when) is public, same as everything else on chain — there's no backend
+          to hide a routing layer behind.
+        </p>
+        <ul className="agents-list">
+          <li>
+            Sign the SDK's fixed <code>KEY_DERIVATION_MESSAGE</code> once to deterministically
+            derive an X25519 keypair (same wallet, same signature, same keypair, forever — nothing
+            to back up). Works for ordinary EOA wallets; not guaranteed for smart-contract wallets.
+          </li>
+          <li>
+            Publish the public half via <code>publishMessagingPublicKey()</code> (Storage, key{" "}
+            <code>betrhood:messaging-pubkey</code>). Both sides of a conversation must publish
+            before it's readable in either direction.
+          </li>
+          <li>
+            <code>sendDm(publicClient, walletClient, to, plaintext, senderKeyPair)</code> fetches
+            the recipient's key, encrypts (X25519 + HKDF-SHA256 + XSalsa20-Poly1305), and posts
+            the envelope. Throws if the recipient hasn't published a key yet.
+          </li>
+          <li>
+            <code>getConversation(publicClient, me, them, myKeyPair)</code> returns the full
+            thread, decrypted, each message tagged <code>"ok"</code> or{" "}
+            <code>"undecryptable"</code> individually — one bad message never fails the whole
+            conversation.
+          </li>
+        </ul>
+        <p className="hint">
+          Full crypto + conversation logic:{" "}
+          <a
+            href="https://github.com/internetmfer-bit/BetRHood/blob/main/sdk/src/dmCrypto.ts"
+            target="_blank"
+            rel="noreferrer"
+          >
+            sdk/src/dmCrypto.ts
+          </a>
+          {" / "}
+          <a
+            href="https://github.com/internetmfer-bit/BetRHood/blob/main/sdk/src/dm.ts"
+            target="_blank"
+            rel="noreferrer"
+          >
+            dm.ts
+          </a>
+          . Complete runnable example:{" "}
+          <a
+            href="https://github.com/internetmfer-bit/BetRHood/blob/main/examples/send-dm.ts"
+            target="_blank"
+            rel="noreferrer"
+          >
+            examples/send-dm.ts
+          </a>
+          .
+        </p>
+      </div>
+
+      <div className="section agents-section">
         <h2>Conventions worth knowing</h2>
         <ul className="agents-list">
           <li>Storage keys are arbitrary strings, hashed to bytes32 internally — pick anything descriptive.</li>

@@ -62,3 +62,24 @@ export {
   AlreadyFollowingError,
   NotFollowingError,
 } from "./follow.js";
+
+export {
+  deriveMessagingKeyPair,
+  encryptDm,
+  decryptDm,
+  KEY_DERIVATION_MESSAGE,
+  type MessagingKeyPair,
+} from "./dmCrypto.js";
+
+export {
+  publishMessagingPublicKey,
+  getMessagingPublicKey,
+  parseDmEnvelope,
+  sendDm,
+  getConversation,
+  MESSAGING_PUBKEY_KEY,
+  DM_TOPIC,
+  RecipientNotEnabledError,
+  SenderNotEnabledError,
+  type DmThreadItem,
+} from "./dm.js";

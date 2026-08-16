@@ -2,9 +2,9 @@
 
 Onchain storage and messaging on Robinhood Chain. Upload a file, get a permanent link back.
 Post a message, get it back by topic. No IPFS, no pinning, no accounts — your wallet is the
-account, the chain is the only persistence layer there is. A public follow graph, upvotes, and
-a following feed with likes/comments/reposts are all built as conventions on top of the same
-two primitives — no separate "social" contract.
+account, the chain is the only persistence layer there is. A public follow graph, upvotes, a
+following feed with likes/comments/reposts, and end-to-end encrypted DMs are all built as
+conventions on top of the same two primitives — no separate "social" or "messaging" contract.
 
 Live on Robinhood Chain mainnet (chain ID `4663`):
 
@@ -26,13 +26,15 @@ point at).
   `Upvote.sol`, `Follow.sol`. See its own README for design notes and deploy instructions.
 - **`sdk/`** — `@betrhood/sdk`, the TypeScript client. `upload()`/`resolve()` for files,
   `postMessage()`/`getMessagesByTopic()` for messages, `setName()`/`setBio()`/`setPicture()`
-  for profiles, `upvote()` for voting, `follow()`/`getFollowing()` for the follow graph. Handles
-  gzip compression and chunking internally. See its own README for the full API, including the
-  social feed's topic/JSON conventions (built on Messaging + Upvote, no separate contract).
+  for profiles, `upvote()` for voting, `follow()`/`getFollowing()` for the follow graph,
+  `sendDm()`/`getConversation()` for end-to-end encrypted messaging. Handles gzip compression
+  and chunking internally. See its own README for the full API, including the social feed's and
+  DMs' topic/JSON conventions (built on Storage + Messaging + Upvote, no separate contracts).
 - **`gateway/`** — Cloudflare Worker (lives at `gateway.betrhood.com`) that turns a link like
   `gateway.betrhood.com/<address>/<key>` into an HTTP response, so anyone can open a link in
   a plain browser with no wallet required, plus a cached proxy for trending token data. See its
   own README for local dev and deploy instructions.
 - **`frontend/`** — the web app (lives at the bare `betrhood.com`): homepage/forum, upload,
-  profile with a follow graph and posts feed, showcase, trending tokens, and a following-feed
-  "Onchain Social" tab, plus a link viewer and an agent-readable reference page.
+  profile with a follow graph and posts feed, showcase, trending tokens, a following-feed
+  "Onchain Social" tab, end-to-end encrypted Messages, plus a link viewer and an agent-readable
+  reference page.

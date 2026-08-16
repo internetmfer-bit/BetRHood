@@ -297,6 +297,56 @@ Both walk the full follow history and filter to currently-active follows (unfoll
 erase the historical record on chain, but these two only ever return people you actually still
 follow / who actually still follow you).
 
+### Direct messages — end-to-end encrypted, no separate contract
+
+Message *content* is genuinely unreadable by anyone but the two participants — but *metadata*
+(who messaged whom, when) is public, same as everything else on chain; there's no backend to
+hide a routing layer behind. Built entirely on `Storage` (for public keys) and `Messaging` (for
+the encrypted envelope, topic `"dm"`) — no dedicated contract.
+
+```ts
+KEY_DERIVATION_MESSAGE: string
+deriveMessagingKeyPair(walletClient) => Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }>
+```
+Signs `KEY_DERIVATION_MESSAGE` once and deterministically derives an X25519 keypair from the
+signature (HKDF-SHA256, then `@noble/curves`' X25519 `keygen`). The same wallet signing the same
+message always reproduces the same signature (RFC 6979 deterministic-k ECDSA, true for ordinary
+EOA wallets — **not** smart-contract wallets like Safe, which don't guarantee this), so the same
+keypair is recoverable forever with nothing to back up. **Never log, transmit, or persist the
+raw signature** — treat it as private key material, since it functions as the only input to it.
+
+```ts
+publishMessagingPublicKey(publicClient, walletClient, publicKey: Uint8Array, options?: { storageAddress?: Address })
+  => Promise<{ version: bigint; txHash: Hex }>
+getMessagingPublicKey(publicClient, who: Address, options?: { storageAddress?: Address }) => Promise<Uint8Array | null>
+```
+Publishes/reads the public half of a derived keypair via `Storage`, under the fixed key
+`betrhood:messaging-pubkey` — same convention as the bio/picture keys above. Both sides of a
+conversation must publish before it's readable in either direction (decrypting needs the
+*sender's* public key too, not just the recipient's — X25519 is a two-sided exchange).
+
+```ts
+sendDm(publicClient, walletClient, to: Address, plaintext: string, senderKeyPair, options?: { messagingAddress?: Address; storageAddress?: Address })
+  => Promise<{ messageId: bigint; txHash: Hex }>
+```
+Throws `RecipientNotEnabledError` if `to` hasn't published a key yet — there's no way to encrypt
+to someone whose key isn't discoverable.
+
+```ts
+type DmThreadItem =
+  | { id: bigint; from: Address; to: Address; timestamp: bigint; status: "ok"; text: string }
+  | { id: bigint; from: Address; to: Address; timestamp: bigint; status: "undecryptable" }
+getConversation(publicClient, me: Address, them: Address, myKeyPair, options?) => Promise<DmThreadItem[]>
+```
+The full conversation between `me` and `them`, oldest first, decrypted with `myKeyPair`. Each
+message is tagged `"ok"` or `"undecryptable"` individually — a single bad message (wrong/missing
+key, tampered data, or non-envelope JSON posted directly to the `dm` topic) never fails the
+whole conversation.
+
+Lower-level primitives (`encryptDm`/`decryptDm`, `parseDmEnvelope`) are also exported for anyone
+building an alternate client — see `sdk/src/dmCrypto.ts`/`sdk/src/dm.ts` for the full surface,
+and `examples/send-dm.ts` for a complete runnable round-trip.
+
 ### Utilities
 
 - **`toKey(key: string): Hex`** — the exact keccak256 hashing `upload()`/`resolve()` use

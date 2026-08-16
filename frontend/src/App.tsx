@@ -4,8 +4,10 @@ import { NetworkBanner } from "./components/NetworkBanner.js";
 import { TrendingTicker } from "./components/TrendingTicker.js";
 import { UserSearch } from "./components/UserSearch.js";
 import { Agents } from "./pages/Agents.js";
+import { Conversation } from "./pages/Conversation.js";
 import { Feed } from "./pages/Feed.js";
 import { Home } from "./pages/Home.js";
+import { Messages } from "./pages/Messages.js";
 import { Profile } from "./pages/Profile.js";
 import { ProfileView } from "./pages/ProfileView.js";
 import { Topic } from "./pages/Topic.js";
@@ -27,6 +29,7 @@ export default function App() {
           <Link to="/upload">Upload</Link>
           <Link to="/trending">Tokens</Link>
           <Link to="/feed">Onchain Social</Link>
+          <Link to="/messages">Messages</Link>
           <Link to="/agents">For Agents</Link>
         </nav>
         <UserSearch />
@@ -43,6 +46,8 @@ export default function App() {
           <Route path="/agents" element={<Agents />} />
           <Route path="/trending" element={<Trending />} />
           <Route path="/feed" element={<Feed />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/messages/:address" element={<Conversation />} />
           <Route path="/u/:address" element={<ProfileView />} />
           <Route path="/topic/:topic" element={<Topic />} />
           <Route path="/view/:address/:key" element={<Viewer />} />

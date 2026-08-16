@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
 import App from "./App.js";
+import { DmProvider } from "./dmContext.js";
 import "./styles.css";
 import { wagmiConfig } from "./wagmi.js";
 
@@ -13,9 +14,11 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <App />
-        </BrowserRouter>
+        <DmProvider>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <App />
+          </BrowserRouter>
+        </DmProvider>
       </QueryClientProvider>
     </WagmiProvider>
   </StrictMode>,

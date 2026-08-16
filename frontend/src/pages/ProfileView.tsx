@@ -1,8 +1,8 @@
 import { getBio, getFollowerCount, getFollowingCount, getProfile, getProfilePicture } from "@betrhood/sdk";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { isAddress, type Address } from "viem";
-import { usePublicClient } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { FollowButton } from "../components/FollowButton";
 import { PostCard } from "../components/PostCard";
 import { getOwnSocialPosts, type FeedItem } from "../social";
@@ -31,6 +31,7 @@ type State =
 export function ProfileView() {
   const { address } = useParams<{ address: string }>();
   const publicClient = usePublicClient();
+  const { address: myAddress } = useAccount();
   const [state, setState] = useState<State>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -139,7 +140,14 @@ export function ProfileView() {
             </p>
           )}
           {state.bio && <p className="profile-bio">{state.bio}</p>}
-          <FollowButton target={address as Address} onChange={() => setReloadKey((k) => k + 1)} />
+          <span className="profile-actions">
+            <FollowButton target={address as Address} onChange={() => setReloadKey((k) => k + 1)} />
+            {myAddress?.toLowerCase() !== address.toLowerCase() && (
+              <Link to={`/messages/${address}`} className="btn">
+                Message
+              </Link>
+            )}
+          </span>
 
           {state.posts !== null && state.posts.length > 0 && (
             <div className="upload-history">
