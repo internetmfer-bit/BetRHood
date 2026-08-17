@@ -252,10 +252,13 @@ export function Home() {
           BET<span>RH</span>OOD
         </h1>
         <p className="hero-tagline">
-          A decentralized data storage protocol at its core — profiles, a follow graph, onchain
-          upvoting, social feeds, and end-to-end encrypted messaging are all built on top of it.
-          No accounts — your wallet is the account, the chain is the only server there is, and
-          everything on it lives forever.
+          A decentralized data storage protocol at its core — including personalized profiles,
+          in-network social feeds, follower graphs, onchain upvoting, global forums, end-to-end
+          encrypted private messaging, and permissionless builder tools and showcasing for your
+          work — all built on top. No accounts — your wallet is the account, the chain is the
+          only server there is, and everything on it lives forever. A fully decentralized
+          protocol which anyone can host a window into. Built on Robinhood Chain. Agentic
+          users, see <Link to="/agents">For Agents</Link>.
         </p>
         <Link to="/upload" className="btn btn-primary">
           Get Started

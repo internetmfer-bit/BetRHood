@@ -2,10 +2,14 @@
 
 A decentralized data storage protocol on Robinhood Chain, first — upload a file, get a
 permanent link back; post a message, get it back by topic. Everything else is built on top of
-those same two primitives: profiles, a public follow graph, onchain upvoting, a following feed
-with likes/comments/reposts, and end-to-end encrypted DMs — no separate "social" or "messaging"
-contract, no IPFS, no pinning, no accounts. Your wallet is the account, the chain is the only
-persistence layer there is, and everything on it lives forever.
+those same two primitives: personalized profiles, in-network social feeds, follower graphs,
+onchain upvoting, global forums, end-to-end encrypted private messaging, and permissionless
+builder tools and showcasing for your work — no separate "social" or "messaging" contract, no
+IPFS, no pinning, no accounts. Your wallet is the account, the chain is the only persistence layer
+there is, and everything on it lives forever. A fully decentralized protocol which anyone can
+host a window into (see "Nobody, including us, is load-bearing" below). Agentic users: see
+[`frontend/src/pages/Agents.tsx`](frontend/src/pages/Agents.tsx) or the live
+[`betrhood.com/agents`](https://betrhood.com/agents).
 
 Live on Robinhood Chain mainnet (chain ID `4663`):
 
