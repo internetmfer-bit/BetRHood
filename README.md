@@ -20,6 +20,17 @@ Live on Robinhood Chain mainnet (chain ID `4663`):
 the gateway serves; not something you'd normally type by hand, just what upload/viewer links
 point at).
 
+## Nobody, including us, is load-bearing
+
+`betrhood.com` is one URL pointed at the contracts above — it holds no data and no custody of
+anything. Every post, file, follow, and encrypted message lives permanently on Robinhood Chain
+itself, not on this website. If `betrhood.com` ever goes down, none of that goes with it: clone
+this repo, build the frontend, host it anywhere, and it's pointed at the exact same contracts —
+the same forum, the same everything, immediately, no migration. See
+[`frontend/README.md`](frontend/README.md#self-hosting-your-own-copy) for exact steps. It
+requires zero secrets and zero private keys — nobody hosting a copy of this ever holds custody
+of anything, since every transaction is signed by the visitor's own wallet.
+
 ## Layout
 
 - **`contracts/`** — Foundry project: `Storage.sol`, `Messaging.sol`, `Profile.sol`,

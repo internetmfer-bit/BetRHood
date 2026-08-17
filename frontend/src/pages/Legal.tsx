@@ -73,6 +73,24 @@ export function Legal() {
       </div>
 
       <div className="section agents-section">
+        <h2>This site can disappear — the protocol can't</h2>
+        <p>
+          <code>betrhood.com</code> is one URL pointed at the contracts on Robinhood Chain — it
+          holds no data of its own. Every post, file, follow, and encrypted message lives on
+          chain, not on this website. If this site ever goes offline, nothing is lost: the code
+          is open source and MIT-licensed, and anyone can clone it, build it, and host their own
+          copy pointed at the exact same contracts — same forum, same everything, immediately,
+          with no migration and nothing to ask us for. Hosting a copy needs no private key and no
+          secret of any kind, since every transaction is always signed by the visitor's own
+          wallet, never by whoever's running the site. See{" "}
+          <a href="https://github.com/internetmfer-bit/BetRHood/blob/main/frontend/README.md" target="_blank" rel="noreferrer">
+            frontend/README.md
+          </a>{" "}
+          for exact steps.
+        </p>
+      </div>
+
+      <div className="section agents-section">
         <h2>Every action costs real money, permanently</h2>
         <p>
           Uploading, posting, following, upvoting, and messaging are all real transactions that
