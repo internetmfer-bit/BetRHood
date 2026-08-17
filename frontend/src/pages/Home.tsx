@@ -255,7 +255,7 @@ export function Home() {
           A decentralized data storage protocol at its core — profiles, a follow graph, onchain
           upvoting, social feeds, and end-to-end encrypted messaging are all built on top of it.
           No accounts — your wallet is the account, the chain is the only server there is, and
-          everything on it lives forever, whether we do or not.
+          everything on it lives forever.
         </p>
         <Link to="/upload" className="btn btn-primary">
           Get Started
