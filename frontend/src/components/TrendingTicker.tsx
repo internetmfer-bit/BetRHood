@@ -9,9 +9,14 @@ export function TrendingTicker() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchTrending().then((data) => {
-      if (!cancelled) setTokens(data);
-    });
+    fetchTrending()
+      .then((data) => {
+        if (!cancelled) setTokens(data);
+      })
+      .catch(() => {
+        // The ticker just stays hidden (renders null below) on a failed/rate-limited fetch —
+        // unlike the dedicated Trending page, there's no room here to explain why.
+      });
     return () => {
       cancelled = true;
     };

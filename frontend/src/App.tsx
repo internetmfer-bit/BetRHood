@@ -63,7 +63,7 @@ export default function App() {
       </main>
 
       <footer className="site-footer">
-        <Link to="/legal">Notices</Link>
+        <Link to="/legal">Terms</Link>
         <a href="https://github.com/internetmfer-bit/BetRHood" target="_blank" rel="noreferrer">
           GitHub
         </a>

@@ -7,9 +7,14 @@ export function Trending() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchTrending().then((data) => {
-      if (!cancelled) setTokens(data);
-    });
+    fetchTrending()
+      .then((data) => {
+        if (!cancelled) setTokens(data);
+      })
+      .catch(() => {
+        // Leave tokens as null — the "still loading" message below doubles as the failure
+        // state, since a stuck fetch and a failed one look identical to a reader either way.
+      });
     return () => {
       cancelled = true;
     };
@@ -37,7 +42,9 @@ export function Trending() {
           placeholder="Search by symbol…"
         />
 
-        {tokens === null && <p className="hint">Loading…</p>}
+        {tokens === null && (
+          <p className="hint">Loading onchain data — if this takes a while, the RPC may be rate-limited. Refresh to try again.</p>
+        )}
         {tokens !== null && tokens.length === 0 && <p className="hint">Nothing trending right now.</p>}
         {tokens !== null && tokens.length > 0 && filtered.length === 0 && (
           <p className="hint">No tokens match "{query}".</p>

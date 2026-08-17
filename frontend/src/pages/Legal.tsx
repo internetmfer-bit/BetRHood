@@ -2,7 +2,7 @@ export function Legal() {
   return (
     <div className="main-wide agents-page">
       <div className="section agents-intro">
-        <h1>Notices</h1>
+        <h1>Terms</h1>
         <p className="hint">
           There's no account to create and nothing to click "I agree" to — your wallet is the
           only identity this protocol has, and there's no signup flow to attach terms to. This
@@ -123,12 +123,21 @@ export function Legal() {
       </div>
 
       <div className="section agents-section">
-        <h2>No warranty</h2>
+        <h2>Experimental software — no warranty, no liability</h2>
         <p>
-          This software is provided as-is, with no warranty of any kind — no guarantee it's free
-          of bugs, no guarantee of uptime, no guarantee of security, no guarantee it's fit for
-          any particular purpose. The code is open source and MIT-licensed; read it yourself
-          rather than take our word for what it does.
+          This is experimental software. It moves real money and real assets, it has not been
+          through a professional, independent security audit, and — like any software — it can
+          contain bugs. <strong>Use it at your own risk.</strong> It is provided "as is," with no
+          warranty of any kind: no guarantee it's free of bugs, no guarantee of uptime, no
+          guarantee of security, no guarantee it's fit for any particular purpose.
+        </p>
+        <p>
+          To the maximum extent permitted by law, neither the people who built this protocol nor
+          anyone hosting a copy of this site is liable for any loss, damage, or claim — direct or
+          indirect — arising from your use of it, including lost funds, lost NFTs, lost data, or
+          a failed or unintended transaction. Every transaction you sign is yours alone: nobody
+          else can reverse it, insure it, or make you whole if it goes wrong. The code is open
+          source and MIT-licensed — read it yourself rather than take our word for what it does.
         </p>
       </div>
     </div>

@@ -29,15 +29,12 @@ export function formatVolume(n: number): string {
 
 /** Real tokens only, straight from Robinhood Chain's actual DEX activity (proxied through the
  * gateway's /trending, which itself proxies GeckoTerminal — never called directly from the
- * browser, since GeckoTerminal's free tier rate-limits hard under real traffic). Resolves to an
- * empty array (never rejects) if the upstream fetch fails — callers render "nothing trending
- * yet" rather than an error, and never fabricate placeholder rows to fill the space. */
+ * browser, since GeckoTerminal's free tier rate-limits hard under real traffic). Throws on a
+ * failed fetch rather than resolving to an empty array — a rate-limited/failed request and a
+ * genuinely empty result are different things callers need to tell apart (an error shouldn't
+ * read as "nothing is trending"). */
 export async function fetchTrending(): Promise<TrendingToken[]> {
-  try {
-    const res = await fetch("https://gateway.betrhood.com/trending");
-    if (!res.ok) return [];
-    return (await res.json()) as TrendingToken[];
-  } catch {
-    return [];
-  }
+  const res = await fetch("https://gateway.betrhood.com/trending");
+  if (!res.ok) throw new Error(`gateway returned ${res.status}`);
+  return (await res.json()) as TrendingToken[];
 }
