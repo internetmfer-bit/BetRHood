@@ -11,6 +11,8 @@ import { Legal } from "./pages/Legal.js";
 import { Messages } from "./pages/Messages.js";
 import { Profile } from "./pages/Profile.js";
 import { ProfileView } from "./pages/ProfileView.js";
+import { Store } from "./pages/Store.js";
+import { StoreCollection } from "./pages/StoreCollection.js";
 import { Topic } from "./pages/Topic.js";
 import { Trending } from "./pages/Trending.js";
 import { Upload } from "./pages/Upload.js";
@@ -30,6 +32,7 @@ export default function App() {
           <Link to="/feed">Social</Link>
           <Link to="/messages">Messages</Link>
           <Link to="/upload">Uploads</Link>
+          <Link to="/store">NFTs</Link>
           <Link to="/trending">Tokens</Link>
           <Link to="/agents">Agents</Link>
         </nav>
@@ -43,6 +46,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/upload" element={<Upload />} />
+          <Route path="/store" element={<Store />} />
+          <Route path="/store/collection/:address" element={<StoreCollection />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/trending" element={<Trending />} />

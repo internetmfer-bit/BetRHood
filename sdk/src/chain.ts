@@ -17,4 +17,13 @@ export const robinhoodChain = defineChain({
       url: "https://robinhoodchain.blockscout.com",
     },
   },
+  contracts: {
+    // Canonical, permissionless, ownerless deployment — same address on virtually every EVM
+    // chain (confirmed live here via getBytecode()). viem only auto-populates this for its own
+    // built-in chain definitions, not custom ones like this, so it must be set explicitly or
+    // publicClient.multicall() fails with "chain does not support contract multicall3".
+    multicall3: {
+      address: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    },
+  },
 });

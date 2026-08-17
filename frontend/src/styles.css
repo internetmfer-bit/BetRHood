@@ -515,9 +515,89 @@ a { color: var(--matrix); }
 }
 .dm-candidate:hover { color: var(--matrix); }
 
-.tabs { display: flex; gap: 16px; }
+.tabs { display: flex; gap: 16px; margin-bottom: 16px; }
 .tab { font-family: var(--font-mono); font-size: 1.1rem; border: none; background: none; color: var(--text-faint); cursor: pointer; padding: 4px 0; }
 .tab-active { color: var(--lime); border-bottom: 2px solid var(--lime); }
+
+/* ---------- Store page ---------- */
+
+.store-tab { display: flex; flex-direction: column; gap: 12px; }
+.store-standard-picker {
+  display: flex;
+  gap: 20px;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--text-soft);
+}
+.store-standard-picker label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.store-standard-picker input { accent-color: var(--lime); }
+
+.store-scan { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.store-scan-range { display: flex; gap: 10px; flex-wrap: wrap; }
+.store-scan-range-input { max-width: 160px; }
+.store-scan-results { display: flex; flex-wrap: wrap; gap: 8px; max-height: 180px; overflow-y: auto; }
+.store-scan-chip {
+  font-family: var(--font-mono);
+  font-size: 0.98rem;
+  color: var(--text-soft);
+  background: var(--black-raised-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.store-scan-chip:hover { border-color: var(--matrix); color: var(--matrix); }
+.store-scan-chip-selected { border-color: var(--lime); color: var(--lime); }
+
+.store-collection-group + .store-collection-group { margin-top: 20px; }
+.store-collection-heading {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.store-collection-heading a { color: var(--lime); text-decoration: none; }
+.store-collection-heading a:hover { color: var(--matrix); text-decoration: underline; }
+
+.store-listing-list { display: flex; flex-direction: column; gap: 2px; }
+.store-listing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.store-listing-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--black-raised-2);
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.store-listing-thumb-empty { display: inline-block; }
+.store-listing-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.store-listing-seller { color: var(--matrix); font-family: var(--font-mono); font-size: 1.05rem; text-decoration: none; }
+.store-listing-seller:hover { text-decoration: underline; }
+.store-listing-item { color: var(--text-soft); font-family: var(--font-mono); font-size: 1rem; }
+.store-listing-actions { display: flex; align-items: center; gap: 14px; }
+.store-listing-price { color: var(--lime); font-family: var(--font-mono); font-size: 1.1rem; }
+
+.store-status {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+}
+.store-status-active { color: var(--matrix); }
+.store-status-sold { color: var(--text-soft); }
+.store-status-cancelled, .store-status-expired, .store-status-not-fulfillable { color: var(--error); }
 
 /* ---------- Agents page ---------- */
 

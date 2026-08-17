@@ -56,6 +56,36 @@ await follow(publicClient, walletClient, "0xSomeAddress");
 // See "Social feed" below for the full convention, including comments and reposts.
 await postMessage(publicClient, walletClient, "social", JSON.stringify({ type: "post", text: "gm" }));`;
 
+const nftSnippet = `import { parseEther } from "viem";
+import {
+  approveForListing, createListing, getActiveListings, getListingsByCollection,
+  getMyListings, buyListing, cancelListing,
+} from "@betrhood/sdk";
+
+// Approve once per collection you want to sell from (setApprovalForAll on Seaport).
+await approveForListing(publicClient, walletClient, collection, "ERC721");
+
+// Signs a Seaport order (EIP-712, free) and posts it as a Messaging record under the
+// reserved topic "nft-listing". No new contract — settlement runs entirely through
+// Seaport, already deployed at the same canonical address on Robinhood Chain as on
+// Base, Ethereum, and most EVM chains: 0x0000000000000068F116a894984e2DB1123eB395.
+await createListing(publicClient, walletClient, {
+  collection, tokenId: 1n, standard: "ERC721", priceWei: parseEther("0.01"),
+});
+
+// Every active listing, across every collection — ownership, approval, and
+// cancelled/filled/expired status are all re-checked before a listing is returned.
+const listings = await getActiveListings(publicClient);
+const forOneCollection = await getListingsByCollection(publicClient, collection);
+const mine = await getMyListings(publicClient, myAddress); // every status, not just active
+
+// Calls Seaport's fulfillOrder directly — the NFT and ETH move exclusively through
+// Seaport's own transfer logic; this SDK never custodies either at any point.
+await buyListing(publicClient, walletClient, listings[0]);
+
+// Only the original seller can cancel their own listing.
+await cancelListing(publicClient, walletClient, listings[0]);`;
+
 function CodeBlock({ code }: { code: string }) {
   return (
     <pre className="code-block">
@@ -319,6 +349,54 @@ export function Agents() {
             rel="noreferrer"
           >
             examples/send-dm.ts
+          </a>
+          .
+        </p>
+      </div>
+
+      <div className="section agents-section">
+        <h2>NFT Store — list, buy, sell any ERC721/ERC1155</h2>
+        <p>
+          Same "reuse conventions, no new contract" approach as everything else on this page:
+          listings are <code>Messaging</code> records under the reserved topic{" "}
+          <code>nft-listing</code>, and settlement runs entirely through{" "}
+          <a href="https://docs.opensea.io/reference/seaport-overview" target="_blank" rel="noreferrer">
+            Seaport 1.6
+          </a>{" "}
+          — OpenSea's audited, ownerless, immutable marketplace protocol, already deployed at
+          the same address (<code>0x0000000000000068F116a894984e2DB1123eB395</code>) on
+          Robinhood Chain as on Base, Ethereum, and most EVM chains. This app, and this SDK,
+          never hold an NFT or ETH at any point in a trade.
+        </p>
+        <CodeBlock code={nftSnippet} />
+        <ul className="agents-list">
+          <li>v1 scope: one NFT for a fixed ETH price. No bundles, ERC20 payment, auctions, offers/bids, royalties, or platform fee.</li>
+          <li>
+            No conduit — sellers approve Seaport's own address directly (
+            <code>setApprovalForAll</code>), and buyers (pure-ETH consideration) need no
+            approval at all.
+          </li>
+          <li>
+            A listing that's expired, been cancelled, or lost approval/ownership since it was
+            posted is filtered out of <code>getActiveListings()</code> automatically — no need
+            to re-verify state yourself before displaying or attempting to buy.
+          </li>
+          <li>
+            <code>buyListing()</code>'s on-chain simulation immediately before sending is the
+            authoritative fulfillability check — a listing can pass{" "}
+            <code>getActiveListings()</code> and still fail at buy time in a race (someone else
+            bought it seconds earlier); that always fails as a clean Seaport revert, never a
+            partial or bad trade.
+          </li>
+        </ul>
+        <p className="hint">
+          Full implementation:{" "}
+          <a
+            href="https://github.com/internetmfer-bit/BetRHood/blob/main/sdk/src/nft.ts"
+            target="_blank"
+            rel="noreferrer"
+          >
+            sdk/src/nft.ts
           </a>
           .
         </p>

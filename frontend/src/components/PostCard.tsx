@@ -1,4 +1,4 @@
-import { getMessagesByTopic, getTopicMessageCount, postMessage, type Message } from "@betrhood/sdk";
+import { getMessagesByTopic, getProfile, getTopicMessageCount, postMessage, type Message } from "@betrhood/sdk";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Address } from "viem";
@@ -53,6 +53,10 @@ export function PostCard({ item, names }: { item: FeedItem; names: Record<string
   const [expanded, setExpanded] = useState(false);
   const [comments, setComments] = useState<Message[] | null>(null);
   const [commentsLoading, setCommentsLoading] = useState(false);
+  // Comments are fetched lazily here, per-post — their senders were never part of whichever
+  // page built `names` (that only covers post authors/repost originals), so commenters who
+  // aren't already in `names` for some other reason need their own resolution pass.
+  const [commentNames, setCommentNames] = useState<Record<string, string>>({});
   const [commentText, setCommentText] = useState("");
   const [commenting, setCommenting] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
@@ -76,13 +80,33 @@ export function PostCard({ item, names }: { item: FeedItem; names: Record<string
     };
   }, [publicClient, id]);
 
+  // Non-fatal — a failure here just means unresolved comment senders fall back to truncated
+  // addresses, same as everywhere else in this app that resolves names best-effort.
+  async function resolveCommentNames(results: Message[]) {
+    if (!publicClient) return;
+    try {
+      const unresolved = [...new Set(results.map((c) => c.sender))].filter((sender) => !names[sender]);
+      const entries = await Promise.all(
+        unresolved.map(async (sender): Promise<[Address, string]> => {
+          const profile = await getProfile(publicClient, sender);
+          return [sender, profile.name];
+        }),
+      );
+      setCommentNames((prev) => ({ ...prev, ...Object.fromEntries(entries.filter(([, n]) => n.length > 0)) }));
+    } catch {
+      // ignore
+    }
+  }
+
   async function toggleExpanded() {
     const next = !expanded;
     setExpanded(next);
     if (next && comments === null && publicClient) {
       setCommentsLoading(true);
       try {
-        setComments(await getMessagesByTopic(publicClient, commentTopic(id)));
+        const results = await getMessagesByTopic(publicClient, commentTopic(id));
+        setComments(results);
+        resolveCommentNames(results);
       } catch {
         setComments([]);
       } finally {
@@ -101,6 +125,7 @@ export function PostCard({ item, names }: { item: FeedItem; names: Record<string
       const results = await getMessagesByTopic(publicClient, commentTopic(id));
       setComments(results);
       setCommentCount(results.length);
+      resolveCommentNames(results);
     } catch (err) {
       setCommentError((err as Error).message);
     } finally {
@@ -157,7 +182,7 @@ export function PostCard({ item, names }: { item: FeedItem; names: Record<string
           {comments?.map((c) => (
             <div className="comment" key={c.id.toString()}>
               <div className="post-meta">
-                <Link to={`/u/${c.sender}`}>{nameFor(names, c.sender)}</Link>
+                <Link to={`/u/${c.sender}`}>{nameFor({ ...names, ...commentNames }, c.sender)}</Link>
                 <span> · {timeLabel(c.timestamp)}</span>
               </div>
               <div className="post-body">{bodyText(c.body)}</div>

@@ -1,4 +1,4 @@
-import { DM_TOPIC } from "@betrhood/sdk";
+import { DM_TOPIC, NFT_LISTING_TOPIC } from "@betrhood/sdk";
 import { stringToHex } from "viem";
 
 /**
@@ -18,7 +18,11 @@ export const SOCIAL_TOPIC = "social";
 // membership has to be known there for sendDm()/getConversation() to work at all, unlike
 // SOCIAL_TOPIC which only the frontend needs to know about, for Forum-listing purposes.
 export { DM_TOPIC };
-export const RESERVED_TOPICS = [SHOWCASE_TOPIC, UPLOADS_TOPIC, SOCIAL_TOPIC, DM_TOPIC] as const;
+// NFT listings — see @betrhood/sdk's nft.ts. Defined SDK-side for the same reason as DM_TOPIC:
+// listing topic membership has to be known there for createListing()/getActiveListings() to
+// work at all.
+export { NFT_LISTING_TOPIC };
+export const RESERVED_TOPICS = [SHOWCASE_TOPIC, UPLOADS_TOPIC, SOCIAL_TOPIC, DM_TOPIC, NFT_LISTING_TOPIC] as const;
 
 // Message.topic comes back as this same bytes32 encoding — compare against these, not the raw
 // strings, when filtering messages already fetched by topic.
@@ -26,7 +30,14 @@ export const SHOWCASE_TOPIC_HEX = stringToHex(SHOWCASE_TOPIC, { size: 32 });
 export const UPLOADS_TOPIC_HEX = stringToHex(UPLOADS_TOPIC, { size: 32 });
 export const SOCIAL_TOPIC_HEX = stringToHex(SOCIAL_TOPIC, { size: 32 });
 export const DM_TOPIC_HEX = stringToHex(DM_TOPIC, { size: 32 });
-export const RESERVED_TOPIC_HEXES = [SHOWCASE_TOPIC_HEX, UPLOADS_TOPIC_HEX, SOCIAL_TOPIC_HEX, DM_TOPIC_HEX] as const;
+export const NFT_LISTING_TOPIC_HEX = stringToHex(NFT_LISTING_TOPIC, { size: 32 });
+export const RESERVED_TOPIC_HEXES = [
+  SHOWCASE_TOPIC_HEX,
+  UPLOADS_TOPIC_HEX,
+  SOCIAL_TOPIC_HEX,
+  DM_TOPIC_HEX,
+  NFT_LISTING_TOPIC_HEX,
+] as const;
 
 export function isReservedTopic(topic: string): boolean {
   return (RESERVED_TOPICS as readonly string[]).includes(topic) || (RESERVED_TOPIC_HEXES as readonly string[]).includes(topic);
