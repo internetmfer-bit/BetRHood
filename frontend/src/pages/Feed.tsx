@@ -1,22 +1,19 @@
 import { getProfile } from "@betrhood/sdk";
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import type { Address } from "viem";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { PostCard } from "../components/PostCard";
-import { getFollowingFeed, postToFeed, type FeedItem } from "../social";
+import { getFollowingFeed, type FeedItem } from "../social";
 
 export function Feed() {
   const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
   const { address, isConnected } = useAccount();
 
   const [items, setItems] = useState<FeedItem[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [postText, setPostText] = useState("");
-  const [posting, setPosting] = useState(false);
 
   const load = useCallback(async () => {
     if (!publicClient || !address) return;
@@ -54,21 +51,6 @@ export function Feed() {
     load();
   }, [load]);
 
-  async function handlePost() {
-    if (!publicClient || !walletClient || postText.trim().length === 0) return;
-    setPosting(true);
-    setError(null);
-    try {
-      await postToFeed(publicClient, walletClient, postText.trim());
-      setPostText("");
-      await load();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setPosting(false);
-    }
-  }
-
   if (!isConnected) {
     return (
       <div className="panel">
@@ -86,19 +68,6 @@ export function Feed() {
           <span className="section-note">posts from people you follow</span>
         </div>
 
-        <div className="reply-box">
-          <textarea
-            className="field field-textarea"
-            value={postText}
-            onChange={(e) => setPostText(e.target.value)}
-            placeholder="Share something"
-            rows={3}
-          />
-          <button className="btn btn-primary" onClick={handlePost} disabled={posting || postText.trim().length === 0}>
-            {posting ? "Posting…" : "Post"}
-          </button>
-        </div>
-
         {loading && <p className="hint">Loading…</p>}
         {!loading && error && (
           <p className="error">
@@ -109,7 +78,10 @@ export function Feed() {
           </p>
         )}
         {!loading && !error && items.length === 0 && (
-          <p className="hint">Nothing here yet — follow people to see their posts, or post something yourself.</p>
+          <p className="hint">
+            Nothing here yet — follow people to see their posts, or{" "}
+            <Link to="/profile">post something yourself</Link>.
+          </p>
         )}
 
         {items.length > 0 && (
