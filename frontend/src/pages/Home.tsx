@@ -252,9 +252,10 @@ export function Home() {
           BET<span>RH</span>OOD
         </h1>
         <p className="hero-tagline">
-          Upload a file, get a permanent link. Follow people, post, like, repost, send an
-          encrypted DM. No accounts — your wallet is the account, the chain is the only server
-          there is, and it'll still be here even if we aren't.
+          A decentralized data storage protocol at its core — profiles, a follow graph, onchain
+          voting, social feeds, and end-to-end encrypted messaging are all built on top of it.
+          No accounts — your wallet is the account, the chain is the only server there is, and
+          it'll still be here even if we aren't.
         </p>
         <Link to="/upload" className="btn btn-primary">
           Get Started
