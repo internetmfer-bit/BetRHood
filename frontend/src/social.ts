@@ -124,8 +124,11 @@ function score(item: FeedItem, likes: number, comments: number, now: number): nu
 export async function getFollowingFeed(publicClient: PublicClient, currentUser: Address): Promise<FeedItem[]> {
   const following = await getFollowing(publicClient, currentUser);
   const followees = following.slice(-FOLLOWEE_CAP).reverse();
+  // Your own feed always includes your own posts too, not just people you follow — same as
+  // any other social app's home timeline. Doesn't count against FOLLOWEE_CAP, since it isn't one.
+  const addresses = [currentUser, ...followees];
 
-  const perAddress = await Promise.all(followees.map((addr) => getOwnSocialPosts(publicClient, addr)));
+  const perAddress = await Promise.all(addresses.map((addr) => getOwnSocialPosts(publicClient, addr)));
   const candidates = perAddress.flat().slice(0, FEED_CANDIDATE_CAP);
   const ids = candidates.map(canonicalId);
 

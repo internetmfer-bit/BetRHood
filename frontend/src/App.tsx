@@ -23,7 +23,7 @@ export default function App() {
 
       <header className="nav">
         <Link to="/" className="brand">
-          BetRHood
+          Bet<span>RH</span>ood
         </Link>
         <nav className="nav-links">
           <Link to="/profile">Profile</Link>

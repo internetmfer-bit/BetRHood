@@ -122,6 +122,7 @@ a { color: var(--matrix); }
   text-decoration: none;
   letter-spacing: -0.02em;
 }
+.brand span { color: var(--matrix); }
 
 .nav-links { display: flex; gap: 20px; flex: 1; }
 .nav-links a {
