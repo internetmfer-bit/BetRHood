@@ -336,9 +336,10 @@ a { color: var(--matrix); }
 .hero-word span { color: var(--matrix); }
 .hero-tagline {
   color: var(--text-soft);
-  max-width: 46ch;
+  max-width: 70ch;
   margin: 0 auto 24px;
   font-size: 1.1rem;
+  line-height: 1.6;
 }
 
 .section { max-width: 900px; width: 100%; margin: 0 auto; padding: 40px 24px 0; }
