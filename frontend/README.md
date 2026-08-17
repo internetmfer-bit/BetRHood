@@ -77,11 +77,16 @@ paths to `index.html` (this is a client-side-routed single-page app):
 - **IPFS/Fleek, GitHub Pages, a VPS with nginx, literally anywhere** — `frontend/dist/` is just
   files. Serve them.
 
-Two things are genuinely optional, not required for the site to work:
+Three things are genuinely optional, not required for the site to work:
 
 - **WalletConnect** (`.env.example` → `VITE_WALLETCONNECT_PROJECT_ID`) — only adds the QR-code/
   mobile-deep-link connection option. Everything works with zero config via any injected wallet
   (MetaMask, Rabby, Coinbase Wallet, etc.) without it.
+- **A dedicated RPC provider** (`.env.example` → `VITE_RPC_URL_PRIMARY`) — the public Robinhood
+  Chain RPC baked into the app is rate-limited and not meant for production traffic (per
+  [Robinhood's own docs](https://docs.robinhood.com/chain/connecting), which recommend Alchemy).
+  Without this set, the app still works, it's just more exposed to that rate limit under real
+  load. Falls back to the public endpoint automatically if the dedicated one ever fails.
 - **The gateway** (`../gateway`) — only needed for raw file links that work with no wallet in a
   plain browser (`gateway.betrhood.com/<address>/<key>`) and for the cached trending-tokens
   proxy. Skip it entirely and the rest of the app — upload, forum, profiles, follow, social
@@ -89,6 +94,9 @@ Two things are genuinely optional, not required for the site to work:
   through a connected wallet. See `../gateway/README.md` if you want to run your own copy of
   that too — same zero-secrets-required story, described there in detail.
 
-No `PRIVATE_KEY`, no `.env` with anything sensitive in it, nothing to keep secret. The only
-thing that could ever go in an environment variable here is a WalletConnect project ID, which
-is a public identifier, not a credential.
+No `PRIVATE_KEY`, nothing to keep secret in the traditional sense — a WalletConnect project ID
+is a public identifier, not a credential. `VITE_RPC_URL_PRIMARY` is the one exception worth being
+careful with: it ends up readable in the browser bundle, so if you set one, use a key your
+provider lets you restrict by HTTP referrer/domain (Alchemy and most others support this) rather
+than an unrestricted key — restricted, it's safe to ship publicly; unrestricted, anyone reading
+the bundle could use up your quota.
