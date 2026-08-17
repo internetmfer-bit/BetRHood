@@ -254,10 +254,11 @@ export function Home() {
         <p className="hero-tagline">
           A decentralized data storage protocol at its core — including personalized profiles,
           in-network social feeds, follower graphs, onchain upvoting, global forums, end-to-end
-          encrypted private messaging, and permissionless builder tools and showcasing for your
-          work — all built on top. No accounts — your wallet is the account, the chain is the
-          only server there is, and everything on it lives forever. A fully decentralized
-          protocol which anyone can host a window into. Built on Robinhood Chain, inspired by{" "}
+          encrypted private messaging, NFT trading, token watchlist, permissionless builder
+          tools, hosting and showcasing for your work — all built on top. No accounts — your
+          wallet is the account, the chain is the only server there is, and everything on it
+          lives forever. A fully decentralized protocol which anyone can host a window into.
+          Built on Robinhood Chain, inspired by{" "}
           <a href="https://www.netprotocol.app/" target="_blank" rel="noreferrer">
             Net Protocol
           </a>

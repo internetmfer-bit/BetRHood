@@ -3,8 +3,9 @@
 A decentralized data storage protocol on Robinhood Chain, first — upload a file, get a
 permanent link back; post a message, get it back by topic. Everything else is built on top of
 those same two primitives: personalized profiles, in-network social feeds, follower graphs,
-onchain upvoting, global forums, end-to-end encrypted private messaging, and permissionless
-builder tools and showcasing for your work — no separate "social" or "messaging" contract, no
+onchain upvoting, global forums, end-to-end encrypted private messaging, NFT trading, token
+watchlist, permissionless builder tools, hosting and showcasing for your work — no separate
+"social," "messaging," or "marketplace" contract, no
 IPFS, no pinning, no accounts. Your wallet is the account, the chain is the only persistence layer
 there is, and everything on it lives forever. A fully decentralized protocol which anyone can
 host a window into (see "Nobody, including us, is load-bearing" below). Inspired by

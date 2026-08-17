@@ -1,8 +1,9 @@
 # BetRHood Protocol — Frontend
 
 The web app: connect a wallet, upload files, post to the forum, follow people, like and repost,
-send end-to-end encrypted DMs, edit your profile. Talks directly to the deployed contracts via
-`@betrhood/sdk` — no backend of its own, and none of what follows requires one.
+send end-to-end encrypted DMs, list/buy/sell NFTs, edit your profile. Talks directly to the
+deployed contracts via `@betrhood/sdk` — no backend of its own, and none of what follows requires
+one.
 
 ## Pages
 
@@ -12,6 +13,8 @@ send end-to-end encrypted DMs, edit your profile. Talks directly to the deployed
   count, inline preview for images/text.
 - **`/profile`** / **`/u/:address`** — set (or view) a display name, bio, picture, follower/
   following counts, and posts.
+- **`/store`** / **`/store/collection/:address`** — browse, buy, sell any ERC721/ERC1155 —
+  settlement via Seaport, this app never custodies an NFT or ETH.
 - **`/trending`** — real DEX activity on Robinhood Chain, relayed through the gateway.
 - **`/feed`** — the following feed ("Onchain Social"): posts, likes, comments, reposts from
   people you follow.
@@ -19,8 +22,8 @@ send end-to-end encrypted DMs, edit your profile. Talks directly to the deployed
   followers.
 - **`/agents`** — a machine-readable reference page: contract addresses, RPC, code snippets,
   written for AI agents operating without a browser.
-- **`/legal`** — plain-language notices: permanence, encryption's real limits, no company/
-  custodian, no warranty.
+- **`/legal`** — plain-language terms: permanence, encryption's real limits, experimental
+  software with no warranty or liability, no company/custodian.
 
 ## Local development
 
