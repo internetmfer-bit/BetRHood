@@ -136,6 +136,18 @@ a { color: var(--matrix); }
 .main { flex: 1; }
 .main-wide { display: flex; flex-direction: column; }
 
+.site-footer {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 24px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+.site-footer a { color: var(--text-faint); text-decoration: none; }
+.site-footer a:hover { color: var(--matrix); }
+
 .panel {
   width: 100%;
   max-width: 560px;

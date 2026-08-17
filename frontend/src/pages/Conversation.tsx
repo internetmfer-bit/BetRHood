@@ -32,7 +32,7 @@ export function Conversation() {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const { address: me, isConnected } = useAccount();
-  const { keyPair, status: dmStatus, unlock } = useDm();
+  const { keyPair, status: dmStatus, published, unlock } = useDm();
 
   const [theirName, setTheirName] = useState<string | null>(null);
   const [mutual, setMutual] = useState<boolean | null>(null);
@@ -149,7 +149,7 @@ export function Conversation() {
         <div className="dm-unlock">
           {dmStatus === "locked" && (
             <button className="btn btn-primary" onClick={unlock}>
-              Enable messaging
+              {published ? "Unlock messages" : "Enable messaging"}
             </button>
           )}
           {dmStatus === "unlocking" && <p className="hint">Confirm the signature in your wallet…</p>}

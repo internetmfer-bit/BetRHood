@@ -7,6 +7,7 @@ import { Agents } from "./pages/Agents.js";
 import { Conversation } from "./pages/Conversation.js";
 import { Feed } from "./pages/Feed.js";
 import { Home } from "./pages/Home.js";
+import { Legal } from "./pages/Legal.js";
 import { Messages } from "./pages/Messages.js";
 import { Profile } from "./pages/Profile.js";
 import { ProfileView } from "./pages/ProfileView.js";
@@ -51,9 +52,17 @@ export default function App() {
           <Route path="/u/:address" element={<ProfileView />} />
           <Route path="/topic/:topic" element={<Topic />} />
           <Route path="/view/:address/:key" element={<Viewer />} />
+          <Route path="/legal" element={<Legal />} />
           <Route path="*" element={<p>Not found.</p>} />
         </Routes>
       </main>
+
+      <footer className="site-footer">
+        <Link to="/legal">Notices</Link>
+        <a href="https://github.com/internetmfer-bit/BetRHood" target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+      </footer>
     </div>
   );
 }

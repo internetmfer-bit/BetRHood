@@ -12,7 +12,7 @@ function truncate(address: string): string {
 export function Messages() {
   const publicClient = usePublicClient();
   const { address, isConnected } = useAccount();
-  const { keyPair, status, error, unlock } = useDm();
+  const { keyPair, status, error, published, unlock } = useDm();
 
   const [candidates, setCandidates] = useState<Address[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
@@ -74,9 +74,16 @@ export function Messages() {
       {status !== "unlocked" && (
         <div className="dm-unlock">
           {status === "locked" && (
-            <button className="btn btn-primary" onClick={unlock}>
-              Enable messaging
-            </button>
+            <>
+              <button className="btn btn-primary" onClick={unlock}>
+                {published ? "Unlock messages" : "Enable messaging"}
+              </button>
+              <p className="hint">
+                {published
+                  ? "You've already enabled messaging on this address — this just re-signs to unlock your key for this session, no cost."
+                  : "One-time setup: a free signature, then a small one-time transaction to publish your public key so others can message you."}
+              </p>
+            </>
           )}
           {status === "unlocking" && <p className="hint">Confirm the signature in your wallet…</p>}
           {status === "unsupported" && (
