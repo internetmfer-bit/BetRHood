@@ -2,10 +2,10 @@
 
 A decentralized data storage protocol on Robinhood Chain, first — upload a file, get a
 permanent link back; post a message, get it back by topic. Everything else is built on top of
-those same two primitives: profiles, a public follow graph, onchain voting, a following feed
+those same two primitives: profiles, a public follow graph, onchain upvoting, a following feed
 with likes/comments/reposts, and end-to-end encrypted DMs — no separate "social" or "messaging"
 contract, no IPFS, no pinning, no accounts. Your wallet is the account, the chain is the only
-persistence layer there is.
+persistence layer there is, and everything on it lives forever.
 
 Live on Robinhood Chain mainnet (chain ID `4663`):
 

@@ -253,9 +253,9 @@ export function Home() {
         </h1>
         <p className="hero-tagline">
           A decentralized data storage protocol at its core — profiles, a follow graph, onchain
-          voting, social feeds, and end-to-end encrypted messaging are all built on top of it.
+          upvoting, social feeds, and end-to-end encrypted messaging are all built on top of it.
           No accounts — your wallet is the account, the chain is the only server there is, and
-          it'll still be here even if we aren't.
+          everything on it lives forever, whether we do or not.
         </p>
         <Link to="/upload" className="btn btn-primary">
           Get Started
