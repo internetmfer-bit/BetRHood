@@ -257,8 +257,11 @@ export function Home() {
           encrypted private messaging, and permissionless builder tools and showcasing for your
           work — all built on top. No accounts — your wallet is the account, the chain is the
           only server there is, and everything on it lives forever. A fully decentralized
-          protocol which anyone can host a window into. Built on Robinhood Chain. Agentic
-          users, see <Link to="/agents">For Agents</Link>.
+          protocol which anyone can host a window into. Built on Robinhood Chain, inspired by{" "}
+          <a href="https://www.netprotocol.app/" target="_blank" rel="noreferrer">
+            Net Protocol
+          </a>
+          , built as its own thing. Agentic users, see <Link to="/agents">For Agents</Link>.
         </p>
         <Link to="/upload" className="btn btn-primary">
           Get Started

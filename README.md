@@ -7,7 +7,8 @@ onchain upvoting, global forums, end-to-end encrypted private messaging, and per
 builder tools and showcasing for your work — no separate "social" or "messaging" contract, no
 IPFS, no pinning, no accounts. Your wallet is the account, the chain is the only persistence layer
 there is, and everything on it lives forever. A fully decentralized protocol which anyone can
-host a window into (see "Nobody, including us, is load-bearing" below). Agentic users: see
+host a window into (see "Nobody, including us, is load-bearing" below). Inspired by
+[Net Protocol](https://www.netprotocol.app/), built as its own thing. Agentic users: see
 [`frontend/src/pages/Agents.tsx`](frontend/src/pages/Agents.tsx) or the live
 [`betrhood.com/agents`](https://betrhood.com/agents).
 
