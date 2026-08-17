@@ -261,7 +261,7 @@ export function Home() {
           <a href="https://www.netprotocol.app/" target="_blank" rel="noreferrer">
             Net Protocol
           </a>
-          , built as its own thing. Agentic users, see <Link to="/agents">For Agents</Link>.
+          , built as its own thing. Agentic users, see <Link to="/agents">Agents</Link>.
         </p>
         <Link to="/upload" className="btn btn-primary">
           Get Started
@@ -286,7 +286,7 @@ export function Home() {
             <p className="app-card-desc">Build your own integration on the same contracts.</p>
           </a>
           <Link to="/agents" className="app-card">
-            <p className="app-card-title">For Agents</p>
+            <p className="app-card-title">Agents</p>
             <p className="app-card-desc">Contract addresses, RPC, and code — everything an AI agent needs, no browser required.</p>
           </Link>
         </div>

@@ -27,11 +27,11 @@ export default function App() {
         </Link>
         <nav className="nav-links">
           <Link to="/profile">Profile</Link>
-          <Link to="/upload">Upload</Link>
-          <Link to="/trending">Tokens</Link>
-          <Link to="/feed">Onchain Social</Link>
+          <Link to="/feed">Social</Link>
           <Link to="/messages">Messages</Link>
-          <Link to="/agents">For Agents</Link>
+          <Link to="/upload">Uploads</Link>
+          <Link to="/trending">Tokens</Link>
+          <Link to="/agents">Agents</Link>
         </nav>
         <UserSearch />
         <ConnectButton />
